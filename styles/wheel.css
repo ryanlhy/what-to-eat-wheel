@@ -1,0 +1,218 @@
+:where(.ui-wheel-of-fortune) {
+  --_items: 6; /* Number of food sections */
+  all: unset;
+  aspect-ratio: 1 / 1;
+  background: Canvas;
+  container-type: inline-size;
+  direction: ltr;
+  display: grid;
+  place-content: center start;
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+:where(.ui-wheel-of-fortune)::after {
+  aspect-ratio: 1/cos(30deg);
+  background-color: #FF5722;
+  clip-path: polygon(50% 100%,100% 0,0 0);
+  content: "";
+  height: 4cqi;
+  position: absolute;
+  place-self: start center;
+  scale: 1.4;
+  z-index: 20;
+}
+
+:where(.ui-wheel-of-fortune) > * { 
+  position: absolute; 
+}
+
+:where(.ui-wheel-of-fortune) button {
+  aspect-ratio: 1 / 1;
+  background: hsla(0, 0%, 100%, .8);
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 5cqi;
+  place-self: center;
+  width: 20cqi;
+  z-index: 10;
+  font-weight: bold;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
+  position: absolute;
+}
+
+:where(.ui-wheel-of-fortune) button:hover {
+  transform: scale(1.1);
+}
+
+:where(.ui-wheel-of-fortune) button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+:where(.ui-wheel-of-fortune) ul {
+  all: unset;
+  clip-path: inset(0 0 0 0 round 50%);
+  display: grid;
+  inset: 0;
+  place-content: center start;
+  transition: transform 4s cubic-bezier(0.32, 0, 0.67, 1);
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+:where(.ui-wheel-of-fortune) ul li {
+  align-content: center;
+  aspect-ratio: 1/calc(2*tan(180deg/var(--_items)));
+  clip-path: polygon(0% 0%, 100% 50%, 0% 100%);
+  display: grid;
+  font-size: 5cqi;
+  grid-area: 1 / -1;
+  padding-left: 1ch;
+  rotate: calc(360deg / var(--_items) * calc(var(--_idx) - 1));
+  transform-origin: center right;
+  user-select: none;
+  width: 50cqi;
+  color: white;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Food section colors */
+:where(.ui-wheel-of-fortune) ul li:nth-of-type(1) { 
+  --_idx: 1; 
+  background: #FF6B35; /* Hawker */
+}
+:where(.ui-wheel-of-fortune) ul li:nth-of-type(2) { 
+  --_idx: 2; 
+  background: #4CAF50; /* Healthy */
+}
+:where(.ui-wheel-of-fortune) ul li:nth-of-type(3) { 
+  --_idx: 3; 
+  background: #2196F3; /* Quick */
+}
+:where(.ui-wheel-of-fortune) ul li:nth-of-type(4) { 
+  --_idx: 4; 
+  background: #9C27B0; /* Special */
+}
+:where(.ui-wheel-of-fortune) ul li:nth-of-type(5) { 
+  --_idx: 5; 
+  background: #8BC34A; /* Veg */
+}
+:where(.ui-wheel-of-fortune) ul li:nth-of-type(6) { 
+  --_idx: 6; 
+  background: #00BCD4; /* Halal */
+}
+
+/* Pointer */
+.wheel-pointer {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 20px;
+  background: #FF5722;
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+  z-index: 20;
+}
+
+/* Food result card */
+.food-result-card {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 100%;
+  border: 1px solid #eaeaea;
+  position: relative;
+}
+
+.category-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #FF5722;
+  color: white;
+  padding: 0.25rem 1rem;
+  border-radius: 1rem;
+  font-weight: bold;
+  font-size: 0.875rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.food-result-card h3 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.food-result-card p {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.health-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.health-rating-dots {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.health-rating-dot {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+}
+
+.health-rating-dot.active {
+  background-color: #4CAF50;
+}
+
+.health-rating-dot.inactive {
+  background-color: #e0e0e0;
+}
+
+.cultural-info {
+  font-style: italic;
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.locations h4 {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.locations ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  color: #666;
+}
+
+.debug-info {
+  background-color: #f0f0f0;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-family: monospace;
+  font-size: 0.875rem;
+  color: #333;
+  margin-top: 1rem;
+  border: 1px dashed #ccc;
+} 

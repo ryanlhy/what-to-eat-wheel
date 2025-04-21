@@ -31,6 +31,7 @@ Every day, Singaporeans face the challenge of deciding what to eat for their mea
 - **State Management**: React Hooks
 - **Animations**: Framer Motion (planned)
 - **Testing**: Jest, React Testing Library, Cypress, MSW
+- **Wheel Implementation**: Based on [Wheel of Fortune with CSS](https://dev.to/madsstoumann/wheel-of-fortune-with-css-p-pi-1ne9) tutorial
 
 ## 📁 Project Structure 
 
