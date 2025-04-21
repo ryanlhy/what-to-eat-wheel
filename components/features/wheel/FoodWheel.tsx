@@ -27,7 +27,9 @@ export const FoodWheel = () => {
         // 3. Account for the offset between the pointer (at top) and section alignment
         // Plus adjustment to match visual alignment based on testing
         // Add a full section (60°) to correct the misalignment
-        const sectionOffset = sectionAngle / 2 + sectionAngle
+        // const sectionOffset = sectionAngle / 2 + sectionAngle
+        const sectionOffset = sectionAngle / 2 + sectionAngle / 2 * 3
+        console.log("sectionOffset", sectionOffset)
         normalizedRotation = (normalizedRotation + sectionOffset) % 360
 
         // 4. Calculate index based on the adjusted rotation

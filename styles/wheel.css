@@ -73,7 +73,7 @@
   display: grid;
   font-size: 5cqi;
   grid-area: 1 / -1;
-  padding-left: 1ch;
+  /* padding-left: 1ch; */
   rotate: calc(360deg / var(--_items) * calc(var(--_idx) - 1));
   transform-origin: center right;
   user-select: none;
