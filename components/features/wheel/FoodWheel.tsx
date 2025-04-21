@@ -18,13 +18,19 @@ export const FoodWheel = () => {
         const sectionAngle = 360 / FOOD_SECTIONS.length
 
         // 1. Normalize the rotation to 0-360
-        // 2. Add 360 and take modulo again to handle negative rotations
-        let normalizedRotation = ((360 - rotation) % 360 + 360) % 360
+        let normalizedRotation = (rotation % 360 + 360) % 360
 
-        // 3. Add half section to align with pointer
-        normalizedRotation = (normalizedRotation + sectionAngle / 2) % 360
+        // 2. Reverse the direction since our wheel rotates clockwise
+        // but sections are numbered counting clockwise from the top
+        normalizedRotation = (360 - normalizedRotation) % 360
 
-        // 4. Calculate index
+        // 3. Account for the offset between the pointer (at top) and section alignment
+        // Plus adjustment to match visual alignment based on testing
+        // Add a full section (60°) to correct the misalignment
+        const sectionOffset = sectionAngle / 2 + sectionAngle
+        normalizedRotation = (normalizedRotation + sectionOffset) % 360
+
+        // 4. Calculate index based on the adjusted rotation
         const index = Math.floor(normalizedRotation / sectionAngle)
 
         return index
@@ -57,8 +63,8 @@ export const FoodWheel = () => {
         // Store the new end degree for the next spin
         previousEndDegree.current = newEndDegree
 
-        // Calculate selected food after animation
-        setTimeout(() => {
+        // Use the animation's finished promise instead of setTimeout for reliable timing
+        animation.finished.then(() => {
             // Get the final rotation (0-360 degrees)
             const finalRotation = newEndDegree % 360
             const sectionAngle = 360 / FOOD_SECTIONS.length
@@ -70,16 +76,22 @@ export const FoodWheel = () => {
             const section = FOOD_SECTIONS[selectedIndex]
             const randomFood = section.items[Math.floor(Math.random() * section.items.length)]
 
-            // Debug information
-            const normalizedRotation = ((360 - finalRotation) % 360 + 360) % 360
-            const debug = `Final Rotation: ${finalRotation.toFixed(1)}°, Normalized: ${normalizedRotation.toFixed(1)}°, Section Angle: ${sectionAngle}°, Index: ${selectedIndex}, Section: ${section.label}`
+            // Debug information - include more details to help diagnose issues
+            const normalizedRotation = (finalRotation % 360 + 360) % 360
+            const reversedRotation = (360 - normalizedRotation) % 360
+            const offset = sectionAngle / 2 + sectionAngle
+            const withOffset = (reversedRotation + offset) % 360
+            const debug = `Final Rotation: ${finalRotation.toFixed(1)}°, Normalized: ${normalizedRotation.toFixed(1)}°, Reversed: ${reversedRotation.toFixed(1)}°, With Offset: ${withOffset.toFixed(1)}°, Section Angle: ${sectionAngle}°, Index: ${selectedIndex}, Section: ${section.label}`
             setDebugInfo(debug)
             console.log(debug)
 
             setSelectedFood(randomFood)
             setSelectedCategory(section.label)
             setIsSpinning(false)
-        }, 4000)
+        }).catch(error => {
+            console.error("Animation error:", error);
+            setIsSpinning(false);
+        });
     }
 
     return (
