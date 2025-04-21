@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+/* Add custom styles for the wheel */
+.wheel-container {
+  --_items: 6;  /* Number of sections in our wheel */
+  container-type: inline-size;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #1a1a1a;  /* Dark background for contrast */
+}
+
+.wheel-section {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;  /* Center the rotation point */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.5cqi;
+  clip-path: polygon(50% 50%, 50% 0, 100% 0, 100% 100%, 50% 100%);
+}
+
+/* Section labels */
+.wheel-section span {
+  position: absolute;
+  left: 75%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(90deg);
+  white-space: nowrap;
+  color: white;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Decorative dots around the wheel */
+.wheel-dots {
+  position: absolute;
+  inset: -1%;
+  border: 6px dotted white;
+  border-radius: 50%;
+  opacity: 0.8;
+}
+
+/* Center hub styling */
+.wheel-hub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12%;
+  height: 12%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border: 3px solid #1a1a1a;
+  border-radius: 50%;
+  z-index: 10;
+  box-shadow: 
+    inset 0 0 10px rgba(0,0,0,0.2),
+    0 2px 5px rgba(0,0,0,0.2);
+} 
