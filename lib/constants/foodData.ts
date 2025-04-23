@@ -2,169 +2,150 @@ import { FoodItem, WheelSection } from '@/types/food'
 
 export const FOOD_SECTIONS: WheelSection[] = [
   {
-    category: 'hawker',
-    label: 'Hawker Favorites',
-    color: 'bg-hawker',
+    category: 'japanese',
+    label: 'Japanese',
+    color: 'bg-japanese',
     items: [
       {
-        id: 'h1',
-        name: 'Hainanese Chicken Rice',
-        category: 'hawker',
-        description: 'Tender poached chicken served with fragrant rice and chili sauce',
+        id: 'j1',
+        name: 'Sushi Platter',
+        category: 'japanese',
+        description: 'Fresh assortment of nigiri and maki rolls',
+        healthRating: 4,
+        culturalInfo: 'Traditional Japanese dish featuring vinegared rice and fresh seafood',
+        locations: ['Sushi Tei', 'Genki Sushi']
+      },
+      {
+        id: 'j2',
+        name: 'Ramen',
+        category: 'japanese',
+        description: 'Japanese noodle soup with rich broth and toppings',
         healthRating: 3,
-        culturalInfo: 'A national dish of Singapore, influenced by Hainanese immigrants',
-        locations: ['Tian Tian Chicken Rice', 'Maxwell Food Centre']
-      },
-      {
-        id: 'h2',
-        name: 'Laksa',
-        category: 'hawker',
-        description: 'Spicy coconut curry noodle soup with seafood',
-        healthRating: 2,
-        culturalInfo: 'Peranakan dish with Chinese and Malay influences',
-        locations: ['328 Katong Laksa', 'Sungei Road Laksa']
-      },
-      {
-        id: 'h3',
-        name: 'Char Kway Teow',
-        category: 'hawker',
-        description: 'Stir-fried rice noodles with seafood and bean sprouts',
-        healthRating: 2,
-        culturalInfo: 'A popular street food dish with Chinese origins',
-        locations: ['Outram Park Fried Kway Teow', 'Hill Street Fried Kway Teow']
+        culturalInfo: 'Popular Japanese comfort food with Chinese origins',
+        locations: ['Ippudo', 'Ramen Keisuke']
       }
     ]
   },
   {
-    category: 'healthy',
-    label: 'Healthy Options',
-    color: 'bg-healthy',
+    category: 'indian',
+    label: 'Indian',
+    color: 'bg-indian',
     items: [
       {
-        id: 'ht1',
+        id: 'i1',
+        name: 'Butter Chicken',
+        category: 'indian',
+        description: 'Tender chicken in creamy tomato sauce',
+        healthRating: 3,
+        culturalInfo: 'North Indian dish originating from Delhi',
+        locations: ['Komala Vilas', 'Ananda Bhavan']
+      },
+      {
+        id: 'i2',
+        name: 'Biryani',
+        category: 'indian',
+        description: 'Fragrant rice dish with spices and meat',
+        healthRating: 3,
+        culturalInfo: 'Royal dish with Persian influences',
+        locations: ['Bismillah Biryani', 'Allauddin\'s Briyani']
+      }
+    ]
+  },
+  {
+    category: 'chinese',
+    label: 'Chinese',
+    color: 'bg-chinese',
+    items: [
+      {
+        id: 'c1',
+        name: 'Dim Sum',
+        category: 'chinese',
+        description: 'Assortment of steamed and fried dumplings',
+        healthRating: 3,
+        culturalInfo: 'Traditional Cantonese brunch dishes',
+        locations: ['Tim Ho Wan', 'Crystal Jade']
+      },
+      {
+        id: 'c2',
+        name: 'Peking Duck',
+        category: 'chinese',
+        description: 'Crispy roasted duck with pancakes',
+        healthRating: 3,
+        culturalInfo: 'Imperial dish from Beijing',
+        locations: ['Imperial Treasure', 'Hai Tien Lo']
+      }
+    ]
+  },
+  {
+    category: 'vegetarian',
+    label: 'Vegetarian',
+    color: 'bg-vegetarian',
+    items: [
+      {
+        id: 'v1',
         name: 'Buddha Bowl',
-        category: 'healthy',
-        description: 'Nutritious bowl with quinoa, vegetables, and protein',
+        category: 'vegetarian',
+        description: 'Nutritious bowl with grains and vegetables',
         healthRating: 5,
         locations: ['The Daily Cut', 'Project Acai']
       },
       {
-        id: 'ht2',
-        name: 'Poke Bowl',
-        category: 'healthy',
-        description: 'Fresh fish and vegetables in a bowl',
-        healthRating: 4,
-        locations: ['Poke Theory', 'Fish Bowl']
-      },
-      {
-        id: 'ht3',
-        name: 'Grain Bowl',
-        category: 'healthy',
-        description: 'Mixed grains with roasted vegetables and lean protein',
-        healthRating: 5,
-        locations: ['Grain Traders', 'The Daily Bowl']
-      }
-    ]
-  },
-  {
-    category: 'quick',
-    label: 'Quick Meals',
-    color: 'bg-quick',
-    items: [
-      {
-        id: 'q1',
-        name: 'Ban Mian',
-        category: 'quick',
-        description: 'Handmade noodles in soup with minced meat',
-        healthRating: 3,
-        locations: ['Noodle Story', 'Ban Mian Express']
-      },
-      {
-        id: 'q2',
-        name: 'Yong Tau Foo',
-        category: 'quick',
-        description: 'Assorted vegetables and tofu in soup',
-        healthRating: 4,
-        locations: ['Yong Tau Foo Express', 'Food Republic']
-      },
-      {
-        id: 'q3',
-        name: 'Mixed Rice',
-        category: 'quick',
-        description: 'Rice with various Chinese dishes',
-        healthRating: 3,
-        locations: ['Mixed Rice Express', 'Food Junction']
-      }
-    ]
-  },
-  {
-    category: 'special',
-    label: 'Special Treats',
-    color: 'bg-special',
-    items: [
-      {
-        id: 's1',
-        name: 'Chilli Crab',
-        category: 'special',
-        description: 'Singapore\'s famous crab dish in spicy tomato sauce',
-        healthRating: 2,
-        culturalInfo: 'A signature dish that represents Singapore\'s culinary heritage',
-        locations: ['Jumbo Seafood', 'Long Beach Seafood']
-      },
-      {
-        id: 's2',
-        name: 'Durian',
-        category: 'special',
-        description: 'The king of fruits with a unique taste and aroma',
-        healthRating: 3,
-        culturalInfo: 'Known as the king of fruits in Southeast Asia',
-        locations: ['99 Old Trees', 'The Durian Story']
-      }
-    ]
-  },
-  {
-    category: 'veg',
-    label: 'Vegetarian',
-    color: 'bg-veg',
-    items: [
-      {
-        id: 'v1',
-        name: 'Vegetarian Nasi Lemak',
-        category: 'veg',
-        description: 'Coconut rice with vegetarian sides',
-        healthRating: 4,
-        locations: ['LingZhi Vegetarian', 'Vegetarian Kitchen']
-      },
-      {
         id: 'v2',
-        name: 'Buddhist Vegetarian',
-        category: 'veg',
-        description: 'Traditional Chinese vegetarian dishes',
+        name: 'Falafel Wrap',
+        category: 'vegetarian',
+        description: 'Crispy chickpea patties in pita bread',
         healthRating: 4,
-        locations: ['LingZhi Vegetarian', 'Vegetarian Kitchen']
+        locations: ['Pita Pan', 'Beirut Grill']
       }
     ]
   },
   {
-    category: 'halal',
-    label: 'Halal Options',
-    color: 'bg-halal',
+    category: 'korean',
+    label: 'Korean',
+    color: 'bg-korean',
     items: [
       {
-        id: 'hl1',
-        name: 'Nasi Padang',
-        category: 'halal',
-        description: 'Indonesian rice with various dishes',
-        healthRating: 3,
-        locations: ['Warong Nasi Pariaman', 'Hjh Maimunah']
+        id: 'k1',
+        name: 'Bibimbap',
+        category: 'korean',
+        description: 'Mixed rice bowl with vegetables and meat',
+        healthRating: 4,
+        culturalInfo: 'Traditional Korean mixed rice dish',
+        locations: ['Seoul Garden', 'Koryo Korean BBQ']
       },
       {
-        id: 'hl2',
-        name: 'Mee Goreng',
-        category: 'halal',
-        description: 'Spicy fried noodles with vegetables and protein',
+        id: 'k2',
+        name: 'Korean BBQ',
+        category: 'korean',
+        description: 'Grilled meats with side dishes',
         healthRating: 3,
-        locations: ['Zam Zam', 'Victory Restaurant']
+        culturalInfo: 'Popular Korean dining experience',
+        locations: ['Seoul Garden', 'Koryo Korean BBQ']
+      }
+    ]
+  },
+  {
+    category: 'thai',
+    label: 'Thai',
+    color: 'bg-thai',
+    items: [
+      {
+        id: 't1',
+        name: 'Pad Thai',
+        category: 'thai',
+        description: 'Stir-fried rice noodles with tamarind sauce',
+        healthRating: 3,
+        culturalInfo: 'National dish of Thailand',
+        locations: ['Nakhon Kitchen', 'Soi 60']
+      },
+      {
+        id: 't2',
+        name: 'Tom Yum Soup',
+        category: 'thai',
+        description: 'Spicy and sour soup with herbs',
+        healthRating: 3,
+        culturalInfo: 'Classic Thai hot and sour soup',
+        locations: ['Nakhon Kitchen', 'Soi 60']
       }
     ]
   }
