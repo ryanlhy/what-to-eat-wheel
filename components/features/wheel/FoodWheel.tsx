@@ -14,6 +14,13 @@ export const FoodWheel = () => {
     const wheelRef = useRef<HTMLUListElement>(null)
     const previousEndDegree = useRef(0)
 
+    useEffect(() => {
+        if (wheelRef.current) {
+            // Set the number of items dynamically
+            wheelRef.current.style.setProperty('--_items', FOOD_SECTIONS.length.toString())
+        }
+    }, [])
+
     const getSelectedSection = (rotation: number) => {
         const sectionAngle = 360 / FOOD_SECTIONS.length
 
@@ -25,10 +32,9 @@ export const FoodWheel = () => {
         normalizedRotation = (360 - normalizedRotation) % 360
 
         // 3. Account for the offset between the pointer (at top) and section alignment
-        // Plus adjustment to match visual alignment based on testing
-        // Add a full section (60°) to correct the misalignment
-        // const sectionOffset = sectionAngle / 2 + sectionAngle
-        const sectionOffset = sectionAngle / 2 + sectionAngle / 2 * 3
+        // sectionAngle / 2 aligns with center of section
+        // sectionAngle * (sectionsCount / 4) provides dynamic adjustment based on number of sections
+        const sectionOffset = sectionAngle / 2 + sectionAngle * (FOOD_SECTIONS.length / 4)
         console.log("sectionOffset", sectionOffset)
         normalizedRotation = (normalizedRotation + sectionOffset) % 360
 

@@ -15,6 +15,7 @@ module.exports = {
         'special': '#9C27B0',   // Purple for special treats
         'veg': '#8BC34A',       // Light green for vegetarian
         'halal': '#00BCD4',     // Cyan for halal options
+        'italian': '#E91E63',   // Pink for Italian cuisine
       },
       animation: {
         'spin-slow': 'spin 3s linear infinite',

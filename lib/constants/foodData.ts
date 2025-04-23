@@ -27,6 +27,31 @@ export const FOOD_SECTIONS: WheelSection[] = [
     ]
   },
   {
+    category: 'italian',
+    label: 'Italian',
+    color: 'bg-italian',
+    items: [
+      {
+        id: 'it1',
+        name: 'Margherita Pizza',
+        category: 'italian',
+        description: 'Classic pizza with tomato sauce, mozzarella, and basil',
+        healthRating: 3,
+        culturalInfo: 'Traditional Neapolitan pizza representing the colors of the Italian flag',
+        locations: ['Pizza Express', 'Peperoni Pizzeria']
+      },
+      {
+        id: 'it2',
+        name: 'Spaghetti Carbonara',
+        category: 'italian',
+        description: 'Pasta with eggs, cheese, pancetta, and black pepper',
+        healthRating: 3,
+        culturalInfo: 'Roman dish with disputed origins',
+        locations: ['Pasta Brava', 'Pasta Fresca']
+      }
+    ]
+  },
+  {
     category: 'indian',
     label: 'Indian',
     color: 'bg-indian',
