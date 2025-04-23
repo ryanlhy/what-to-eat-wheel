@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { FOOD_SECTIONS } from '@/lib/constants/foodData'
 import { FoodItem } from '@/types/food'
 import '@/styles/wheel.css'
+import { NearbyRestaurants } from '../restaurants/NearbyRestaurants'
 
 export const FoodWheel = () => {
     const [isSpinning, setIsSpinning] = useState(false)
@@ -134,7 +135,7 @@ export const FoodWheel = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className="food-result-card"
+                        className="food-result-card w-full max-w-4xl"
                     >
                         <div className="category-badge">
                             {selectedCategory}
@@ -165,6 +166,10 @@ export const FoodWheel = () => {
                                 </ul>
                             </div>
                         )}
+
+                        <NearbyRestaurants
+                            cuisine={selectedFood.cuisine || selectedCategory.toLowerCase()}
+                        />
                     </motion.div>
                 )}
             </AnimatePresence>

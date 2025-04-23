@@ -9,6 +9,7 @@ export interface FoodItem {
   culturalInfo?: string
   locations?: string[]
   imageUrl?: string
+  cuisine?: string
 }
 
 export interface WheelSection {
