@@ -13,7 +13,8 @@ interface Restaurant {
     photos?: string[];
     price_level?: number;
     opening_hours?: {
-        isOpen: (date?: Date) => boolean | undefined;
+        open_now?: boolean;
+        weekday_text?: string[];
     };
 }
 
@@ -81,9 +82,28 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                     results.map(async (place) => {
                         const details = await new Promise<google.maps.places.PlaceResult>((resolve, reject) => {
                             service.getDetails(
-                                { placeId: place.place_id as string, fields: ['photos', 'price_level', 'opening_hours'] },
+                                {
+                                    placeId: place.place_id as string,
+                                    fields: [
+                                        'photos',
+                                        'price_level',
+                                        'opening_hours',
+                                        'formatted_address',
+                                        'name',
+                                        'rating',
+                                        'types',
+                                        'vicinity',
+                                        'website',
+                                        'url'
+                                    ]
+                                },
                                 (details, status) => {
                                     if (status === google.maps.places.PlacesServiceStatus.OK && details) {
+                                        console.log('Complete Place Details:', {
+                                            name: details.name,
+                                            opening_hours: details.opening_hours,
+                                            allDetails: details
+                                        });
                                         resolve(details);
                                     } else {
                                         reject(new Error('Error getting place details'));
@@ -99,13 +119,10 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                             types: place.types || [],
                             place_id: place.place_id as string,
                             photos: details.photos?.map(photo => {
-                                console.log('Photo object:', photo);
                                 try {
                                     const url = photo.getUrl({ maxWidth: 400 });
-                                    console.log('Photo URL:', url);
                                     return url;
                                 } catch (error) {
-                                    console.error('Error getting photo URL:', error);
                                     return '';
                                 }
                             }).filter(url => url !== '') || [],
@@ -114,6 +131,13 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                         } as Restaurant;
                     })
                 );
+
+                // Log opening hours data for debugging
+                console.log('Opening Hours Data:', detailedRestaurants.map(restaurant => ({
+                    name: restaurant.name,
+                    opening_hours: restaurant.opening_hours,
+                    isOpen: restaurant.opening_hours?.open_now
+                })));
 
                 setRestaurants(detailedRestaurants);
             } catch (err) {
@@ -177,8 +201,8 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                                         {restaurant.name}
                                     </h4>
                                     {restaurant.opening_hours && (
-                                        <span className={`text-sm flex-shrink-0 ${restaurant.opening_hours.isOpen() ? 'text-green-600' : 'text-red-600'}`}>
-                                            {restaurant.opening_hours.isOpen() ? 'Open' : 'Closed'}
+                                        <span className={`text-sm flex-shrink-0 ${restaurant.opening_hours.open_now ? 'text-green-600' : 'text-red-600'}`}>
+                                            {restaurant.opening_hours.open_now ? 'Open' : 'Closed'}
                                         </span>
                                     )}
                                 </div>
@@ -198,7 +222,7 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                                             </span>
                                         </>
                                     )}
-                                    <span className="text-gray-400">•</span>
+                                    <span className="text-gray-400"> • </span>
                                     <span className="text-gray-600 truncate">
                                         {restaurant.types[0]?.replace(/_/g, ' ')}
                                     </span>
@@ -208,7 +232,7 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                                     {restaurant.vicinity}
                                 </p>
 
-                                <div className="mt-2 flex flex-wrap gap-2">
+                                {/* <div className="mt-2 flex flex-wrap gap-2">
                                     {restaurant.types?.slice(1, 3).map((type, index) => (
                                         <span
                                             key={index}
@@ -217,7 +241,7 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                                             {type.replace(/_/g, ' ')}
                                         </span>
                                     ))}
-                                </div>
+                                </div> */}
                             </div>
 
                             {/* Vertical Divider */}
