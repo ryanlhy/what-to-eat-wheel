@@ -156,7 +156,7 @@ export const FoodWheel = () => {
                         {selectedFood.culturalInfo && (
                             <p className="cultural-info">{selectedFood.culturalInfo}</p>
                         )}
-                        {selectedFood.locations && (
+                        {/* {selectedFood.locations && (
                             <div className="locations">
                                 <h4>Where to Try:</h4>
                                 <ul>
@@ -165,7 +165,7 @@ export const FoodWheel = () => {
                                     ))}
                                 </ul>
                             </div>
-                        )}
+                        )} */}
 
                         <NearbyRestaurants
                             cuisine={selectedFood.cuisine || selectedCategory.toLowerCase()}
