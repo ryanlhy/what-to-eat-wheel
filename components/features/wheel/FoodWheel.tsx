@@ -25,6 +25,18 @@ export const FoodWheel = () => {
         }
     }, [])
 
+    useEffect(() => {
+        // Prevent body scrolling when overlay is open
+        if (showOverlay) {
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = 'auto'
+        }
+        return () => {
+            document.body.style.overflow = 'auto'
+        }
+    }, [showOverlay])
+
     const getSelectedSection = (rotation: number) => {
         const sectionAngle = 360 / FOOD_SECTIONS.length
 
@@ -142,7 +154,7 @@ export const FoodWheel = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
+                        className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 w-screen h-screen overflow-hidden"
                         onClick={() => setShowOverlay(false)}
                     >
                         <motion.div
