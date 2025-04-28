@@ -7,6 +7,8 @@ import { FoodItem } from '@/types/food'
 import '@/styles/wheel.css'
 import { NearbyRestaurants } from '../restaurants/NearbyRestaurants'
 
+const DEBUG_MODE = process.env.NEXT_PUBLIC_DEBUG_MODE === 'true'
+
 export const FoodWheel = () => {
     const [isSpinning, setIsSpinning] = useState(false)
     const [selectedFood, setSelectedFood] = useState<FoodItem | null>(null)
@@ -93,8 +95,10 @@ export const FoodWheel = () => {
             const offset = sectionAngle / 2 + sectionAngle
             const withOffset = (reversedRotation + offset) % 360
             const debug = `Final Rotation: ${finalRotation.toFixed(1)}°, Normalized: ${normalizedRotation.toFixed(1)}°, Reversed: ${reversedRotation.toFixed(1)}°, With Offset: ${withOffset.toFixed(1)}°, Section Angle: ${sectionAngle}°, Index: ${selectedIndex}, Section: ${section.label}`
-            setDebugInfo(debug)
-            console.log(debug)
+            if (DEBUG_MODE) {
+                setDebugInfo(debug)
+                console.log(debug)
+            }
 
             setSelectedFood(randomFood)
             setSelectedCategory(section.label)
@@ -126,7 +130,7 @@ export const FoodWheel = () => {
                 <div className="wheel-pointer" />
             </div>
 
-            {debugInfo && (
+            {DEBUG_MODE && debugInfo && (
                 <div className="debug-info">
                     {debugInfo}
                 </div>
