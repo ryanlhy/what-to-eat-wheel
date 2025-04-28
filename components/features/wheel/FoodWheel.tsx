@@ -139,7 +139,7 @@ export const FoodWheel = () => {
                         onClick={spinWheel}
                         disabled={isSpinning}
                     >
-                        {isSpinning ? 'SPINNING...' : 'SPIN'}
+                        SPIN
                     </button>
                 </fieldset>
                 <div className="wheel-pointer" />
