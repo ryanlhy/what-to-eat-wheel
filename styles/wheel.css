@@ -10,6 +10,7 @@
   width: 100%;
   max-width: 500px;
   margin: 0 auto;
+  filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.2));
 }
 
 :where(.ui-wheel-of-fortune)::after {
@@ -62,6 +63,11 @@
   position: absolute;
   width: 100%;
   height: 100%;
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    0 8px 16px rgba(0, 0, 0, 0.1),
+    0 16px 24px rgba(0, 0, 0, 0.1);
+  z-index: 1;
 }
 
 :where(.ui-wheel-of-fortune) ul li {
