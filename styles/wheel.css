@@ -1,7 +1,7 @@
 :where(.ui-wheel-of-fortune) {
   all: unset;
   aspect-ratio: 1 / 1;
-  background: Canvas;
+  background: transparent;
   container-type: inline-size;
   direction: ltr;
   display: grid;
