@@ -12,6 +12,7 @@ export const FoodWheel = () => {
     const [selectedFood, setSelectedFood] = useState<FoodItem | null>(null)
     const [selectedCategory, setSelectedCategory] = useState<string>('')
     const [debugInfo, setDebugInfo] = useState<string>('')
+    const [showOverlay, setShowOverlay] = useState(false)
     const wheelRef = useRef<HTMLUListElement>(null)
     const previousEndDegree = useRef(0)
 
@@ -52,6 +53,7 @@ export const FoodWheel = () => {
         setSelectedFood(null)
         setSelectedCategory('')
         setDebugInfo('')
+        setShowOverlay(false)
 
         // Random rotation between 5 and 10 full spins plus a random section
         const spins = 5 + Math.random() * 5
@@ -96,6 +98,7 @@ export const FoodWheel = () => {
 
             setSelectedFood(randomFood)
             setSelectedCategory(section.label)
+            setShowOverlay(true)
             setIsSpinning(false)
         }).catch(error => {
             console.error("Animation error:", error);
@@ -109,7 +112,7 @@ export const FoodWheel = () => {
                 <fieldset className="ui-wheel-of-fortune">
                     <ul ref={wheelRef}>
                         {FOOD_SECTIONS.map((section) => (
-                            <li key={section.category}>{section.label}</li>
+                            <li key={section.category} className="py-10">{section.label}</li>
                         ))}
                     </ul>
                     <button
@@ -130,7 +133,58 @@ export const FoodWheel = () => {
             )}
 
             <AnimatePresence>
-                {selectedFood && (
+                {selectedFood && showOverlay && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
+                        onClick={() => setShowOverlay(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="w-full max-w-4xl bg-white/95 p-8 rounded-lg shadow-2xl mx-4 relative"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <button
+                                onClick={() => setShowOverlay(false)}
+                                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 bg-white/80 rounded-full p-2 hover:bg-white transition-colors"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                            <div className="text-center">
+                                <h2 className="text-5xl font-bold mb-8 text-gray-800">{selectedCategory}</h2>
+                                <div className="recommendation-box bg-gray-50 p-6 rounded-lg mb-6">
+                                    <h3 className="text-3xl font-semibold mb-4 text-gray-700">Recommended Dish</h3>
+                                    <h4 className="text-2xl font-medium mb-3 text-gray-800">{selectedFood.name}</h4>
+                                    <p className="text-gray-600 text-lg mb-4">{selectedFood.description}</p>
+                                    <div className="health-rating flex items-center justify-center gap-2 mb-4">
+                                        <span className="text-gray-700 text-lg">Health Rating:</span>
+                                        <div className="health-rating-dots flex gap-1">
+                                            {[...Array(5)].map((_, i) => (
+                                                <span
+                                                    key={i}
+                                                    className={`health-rating-dot ${i < selectedFood.healthRating ? 'active' : 'inactive'}`}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                    {selectedFood.culturalInfo && (
+                                        <p className="cultural-info italic text-gray-600 text-lg">{selectedFood.culturalInfo}</p>
+                                    )}
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {selectedFood && !showOverlay && (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -156,17 +210,6 @@ export const FoodWheel = () => {
                         {selectedFood.culturalInfo && (
                             <p className="cultural-info">{selectedFood.culturalInfo}</p>
                         )}
-                        {/* {selectedFood.locations && (
-                            <div className="locations">
-                                <h4>Where to Try:</h4>
-                                <ul>
-                                    {selectedFood.locations.map((location) => (
-                                        <li key={location}>{location}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )} */}
-
                         <NearbyRestaurants
                             cuisine={selectedFood.cuisine || selectedCategory.toLowerCase()}
                         />
