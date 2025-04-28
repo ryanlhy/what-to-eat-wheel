@@ -10,7 +10,9 @@ interface Restaurant {
     rating?: number;
     types: string[];
     place_id: string;
-    photos?: string[];
+    photos?: {
+        getUrl: (options: { maxWidth: number; maxHeight: number }) => string;
+    }[];
     price_level?: number;
     opening_hours?: {
         open_now?: boolean;
@@ -27,6 +29,7 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
     const { isLoaded, loadError } = useLoadScript({
         googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
@@ -99,11 +102,6 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                                 },
                                 (details, status) => {
                                     if (status === google.maps.places.PlacesServiceStatus.OK && details) {
-                                        console.log('Complete Place Details:', {
-                                            name: details.name,
-                                            opening_hours: details.opening_hours,
-                                            allDetails: details
-                                        });
                                         resolve(details);
                                     } else {
                                         reject(new Error('Error getting place details'));
@@ -118,14 +116,7 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                             rating: place.rating,
                             types: place.types || [],
                             place_id: place.place_id as string,
-                            photos: details.photos?.map(photo => {
-                                try {
-                                    const url = photo.getUrl({ maxWidth: 400 });
-                                    return url;
-                                } catch (error) {
-                                    return '';
-                                }
-                            }).filter(url => url !== '') || [],
+                            photos: details.photos || [],
                             price_level: details.price_level,
                             opening_hours: details.opening_hours
                         } as Restaurant;
@@ -155,6 +146,15 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
     const getPriceLevel = (level?: number) => {
         if (!level) return '';
         return '$'.repeat(level);
+    };
+
+    const handleImageClick = (photo: { getUrl: (options: { maxWidth: number; maxHeight: number }) => string }) => {
+        const highResUrl = photo.getUrl({ maxWidth: 1200, maxHeight: 1200 });
+        setSelectedImage(highResUrl);
+    };
+
+    const handleCloseImage = () => {
+        setSelectedImage(null);
     };
 
     if (loadError) return (
@@ -192,12 +192,48 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                     {restaurants.map((restaurant) => (
                         <div
                             key={restaurant.place_id}
-                            className="flex items-start pb-6 border-b border-gray-200 last:border-0 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                            className="flex flex-col md:flex-row items-start pb-6 border-b border-gray-200 last:border-0 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
                         >
-                            {/* Restaurant Details - 2/3 width */}
-                            <div className="w-2/3 pr-4">
+                            {/* Restaurant Image - Full width on mobile, 1/4 on desktop */}
+                            <div className="w-full md:w-1/4 mb-4 md:mb-0">
+                                {restaurant.photos?.[0] ? (
+                                    <div
+                                        className="w-full aspect-square relative rounded-lg overflow-hidden cursor-pointer"
+                                        onClick={() => handleImageClick(restaurant.photos![0])}
+                                    >
+                                        <img
+                                            src={restaurant.photos[0].getUrl({ maxWidth: 400, maxHeight: 400 })}
+                                            alt={restaurant.name}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                console.log('Image failed to load for restaurant:', restaurant.name);
+                                                const target = e.target as HTMLImageElement;
+                                                target.style.display = 'none';
+                                                target.parentElement?.classList.add('bg-gray-200');
+                                                target.parentElement?.classList.add('flex');
+                                                target.parentElement?.classList.add('items-center');
+                                                target.parentElement?.classList.add('justify-center');
+                                                const noImageText = document.createElement('span');
+                                                noImageText.className = 'text-gray-400 text-sm';
+                                                noImageText.textContent = 'No Image';
+                                                target.parentElement?.appendChild(noImageText);
+                                            }}
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="w-full aspect-square rounded-lg overflow-hidden bg-gray-200 flex items-center justify-center">
+                                        <span className="text-gray-400 text-sm">No Image</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Vertical Divider - Only show on desktop */}
+                            <div className="hidden md:block h-32 w-px bg-gray-200 mx-4" />
+
+                            {/* Restaurant Details - Full width on mobile, 3/4 on desktop */}
+                            <div className="w-full md:w-3/4 md:pl-4">
                                 <div className="flex items-start justify-between gap-2">
-                                    <h4 className="font-medium text-base text-gray-900 truncate">
+                                    <h4 className="font-medium text-base text-gray-900">
                                         {restaurant.name}
                                     </h4>
                                     {restaurant.opening_hours && (
@@ -223,14 +259,23 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                                         </>
                                     )}
                                     <span className="text-gray-400"> • </span>
-                                    <span className="text-gray-600 truncate">
+                                    <span className="text-gray-600">
                                         {restaurant.types[0]?.replace(/_/g, ' ')}
                                     </span>
                                 </div>
 
-                                <p className="text-gray-600 text-sm mt-1 truncate">
+                                <p className="text-gray-600 text-sm mt-1">
                                     {restaurant.vicinity}
                                 </p>
+
+                                {restaurant.opening_hours?.weekday_text && (
+                                    <div className="mt-2">
+                                        <p className="text-sm font-medium text-gray-700">Opening Hours:</p>
+                                        <p className="text-sm text-gray-600">
+                                            {restaurant.opening_hours.weekday_text[new Date().getDay()]}
+                                        </p>
+                                    </div>
+                                )}
 
                                 {/* <div className="mt-2 flex flex-wrap gap-2">
                                     {restaurant.types?.slice(1, 3).map((type, index) => (
@@ -243,43 +288,35 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                                     ))}
                                 </div> */}
                             </div>
-
-                            {/* Vertical Divider */}
-                            <div className="h-32 w-px bg-gray-200 mx-4" />
-
-                            {/* Restaurant Image - 1/3 width */}
-                            <div className="w-1/3">
-                                {restaurant.photos?.[0] && restaurant.photos[0].includes('PhotoService.GetPhoto') ? (
-                                    <div className="w-full aspect-square relative rounded-lg overflow-hidden">
-                                        <img
-                                            src={restaurant.photos[0].replace(/&amp;/g, '&')}
-                                            alt={restaurant.name}
-                                            className="w-full h-full object-cover"
-                                            onError={(e) => {
-                                                console.log('Image failed to load for restaurant:', restaurant.name);
-                                                const target = e.target as HTMLImageElement;
-                                                target.style.display = 'none';
-                                                target.parentElement?.classList.add('bg-gray-200');
-                                                target.parentElement?.classList.add('flex');
-                                                target.parentElement?.classList.add('items-center');
-                                                target.parentElement?.classList.add('justify-center');
-                                                const noImageText = document.createElement('span');
-                                                noImageText.className = 'text-gray-400 text-sm';
-                                                noImageText.textContent = 'No Image';
-                                                target.parentElement?.appendChild(noImageText);
-                                            }}
-                                        />
-                                    </div>
-                                ) : (
-                                    <div className="w-full aspect-square rounded-lg overflow-hidden bg-gray-200 flex items-center justify-center">
-                                        <span className="text-gray-400 text-sm">No Image</span>
-                                    </div>
-                                )}
-                            </div>
                         </div>
                     ))}
                 </div>
             </div>
+
+            {/* Image Overlay */}
+            {selectedImage && (
+                <div
+                    className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+                    onClick={handleCloseImage}
+                >
+                    <div className="relative max-w-4xl w-full">
+                        <button
+                            onClick={handleCloseImage}
+                            className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        <img
+                            src={selectedImage}
+                            alt="Restaurant"
+                            className="w-full h-auto rounded-lg shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }; 
