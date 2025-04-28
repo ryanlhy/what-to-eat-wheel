@@ -30,6 +30,7 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
 
     const { isLoaded, loadError } = useLoadScript({
         googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
@@ -233,7 +234,10 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                             {/* Restaurant Details - Full width on mobile, 3/4 on desktop */}
                             <div className="w-full md:w-3/4 md:pl-4">
                                 <div className="flex items-start justify-between gap-2">
-                                    <h4 className="font-medium text-base text-gray-900">
+                                    <h4
+                                        className="font-medium text-base text-gray-900 cursor-pointer hover:text-blue-600 transition-colors"
+                                        onClick={() => setSelectedRestaurant(restaurant)}
+                                    >
                                         {restaurant.name}
                                     </h4>
                                     {restaurant.opening_hours && (
@@ -276,17 +280,6 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                                         </p>
                                     </div>
                                 )}
-
-                                {/* <div className="mt-2 flex flex-wrap gap-2">
-                                    {restaurant.types?.slice(1, 3).map((type, index) => (
-                                        <span
-                                            key={index}
-                                            className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full"
-                                        >
-                                            {type.replace(/_/g, ' ')}
-                                        </span>
-                                    ))}
-                                </div> */}
                             </div>
                         </div>
                     ))}
@@ -314,6 +307,56 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                             className="w-full h-auto rounded-lg shadow-2xl"
                             onClick={(e) => e.stopPropagation()}
                         />
+                    </div>
+                </div>
+            )}
+
+            {/* Restaurant Details Modal */}
+            {selectedRestaurant && (
+                <div
+                    className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+                    onClick={() => setSelectedRestaurant(null)}
+                >
+                    <div
+                        className="bg-white rounded-lg shadow-2xl max-w-lg w-full p-6 relative"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <button
+                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 bg-white/80 rounded-full p-2"
+                            onClick={() => setSelectedRestaurant(null)}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        <h2 className="text-2xl font-bold mb-2">{selectedRestaurant.name}</h2>
+                        <p className="text-gray-700 mb-2">{selectedRestaurant.vicinity}</p>
+                        {selectedRestaurant.rating && (
+                            <p className="mb-2">Rating: <span className="font-semibold">{selectedRestaurant.rating}</span></p>
+                        )}
+                        {selectedRestaurant.price_level && (
+                            <p className="mb-2">Price: <span className="font-semibold">{getPriceLevel(selectedRestaurant.price_level)}</span></p>
+                        )}
+                        {selectedRestaurant.opening_hours?.weekday_text && (
+                            <div className="mb-2">
+                                <p className="font-semibold">Opening Hours:</p>
+                                <ul className="text-sm text-gray-600">
+                                    {selectedRestaurant.opening_hours.weekday_text.map((line, idx) => (
+                                        <li key={idx}>{line}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                        <div className="flex gap-4 mt-4">
+                            <a
+                                href={`https://www.google.com/maps/place/?q=place_id:${selectedRestaurant.place_id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 underline"
+                            >
+                                View on Google Maps
+                            </a>
+                        </div>
                     </div>
                 </div>
             )}
