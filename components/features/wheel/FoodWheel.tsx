@@ -74,13 +74,13 @@ export const FoodWheel = () => {
         const randomAdditionalDegrees = spins * 360 + Math.random() * 360
         const newEndDegree = previousEndDegree.current + randomAdditionalDegrees
 
-        // Apply the animation using the Web Animations API
+        // Apply the animation using the Web Animations API with a more gradual easing
         const animation = wheelRef.current.animate([
             { transform: `rotate(${previousEndDegree.current}deg)` },
             { transform: `rotate(${newEndDegree}deg)` }
         ], {
-            duration: 4000,
-            easing: 'cubic-bezier(0.32, 0, 0.67, 1)',
+            duration: 7000, // Increased duration for more suspense
+            easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)', // More gradual easing for consistent slowdown
             fill: 'forwards',
             iterations: 1
         })
@@ -88,34 +88,37 @@ export const FoodWheel = () => {
         // Store the new end degree for the next spin
         previousEndDegree.current = newEndDegree
 
-        // Use the animation's finished promise instead of setTimeout for reliable timing
+        // Use the animation's finished promise for reliable timing
         animation.finished.then(() => {
-            // Get the final rotation (0-360 degrees)
-            const finalRotation = newEndDegree % 360
-            const sectionAngle = 360 / FOOD_SECTIONS.length
+            // Add a suspenseful pause before revealing results
+            setTimeout(() => {
+                // Get the final rotation (0-360 degrees)
+                const finalRotation = newEndDegree % 360
+                const sectionAngle = 360 / FOOD_SECTIONS.length
 
-            // Get the selected section index
-            const selectedIndex = getSelectedSection(finalRotation)
+                // Get the selected section index
+                const selectedIndex = getSelectedSection(finalRotation)
 
-            // Get the section and a random food item from it
-            const section = FOOD_SECTIONS[selectedIndex]
-            const randomFood = section.items[Math.floor(Math.random() * section.items.length)]
+                // Get the section and a random food item from it
+                const section = FOOD_SECTIONS[selectedIndex]
+                const randomFood = section.items[Math.floor(Math.random() * section.items.length)]
 
-            // Debug information - include more details to help diagnose issues
-            const normalizedRotation = (finalRotation % 360 + 360) % 360
-            const reversedRotation = (360 - normalizedRotation) % 360
-            const offset = sectionAngle / 2 + sectionAngle
-            const withOffset = (reversedRotation + offset) % 360
-            const debug = `Final Rotation: ${finalRotation.toFixed(1)}°, Normalized: ${normalizedRotation.toFixed(1)}°, Reversed: ${reversedRotation.toFixed(1)}°, With Offset: ${withOffset.toFixed(1)}°, Section Angle: ${sectionAngle}°, Index: ${selectedIndex}, Section: ${section.label}`
-            if (DEBUG_MODE) {
-                setDebugInfo(debug)
-                console.log(debug)
-            }
+                // Debug information
+                const normalizedRotation = (finalRotation % 360 + 360) % 360
+                const reversedRotation = (360 - normalizedRotation) % 360
+                const offset = sectionAngle / 2 + sectionAngle
+                const withOffset = (reversedRotation + offset) % 360
+                const debug = `Final Rotation: ${finalRotation.toFixed(1)}°, Normalized: ${normalizedRotation.toFixed(1)}°, Reversed: ${reversedRotation.toFixed(1)}°, With Offset: ${withOffset.toFixed(1)}°, Section Angle: ${sectionAngle}°, Index: ${selectedIndex}, Section: ${section.label}`
+                if (DEBUG_MODE) {
+                    setDebugInfo(debug)
+                    console.log(debug)
+                }
 
-            setSelectedFood(randomFood)
-            setSelectedCategory(section.label)
-            setShowOverlay(true)
-            setIsSpinning(false)
+                setSelectedFood(randomFood)
+                setSelectedCategory(section.label)
+                setShowOverlay(true)
+                setIsSpinning(false)
+            }, 1000) // 1 second pause for suspense
         }).catch(error => {
             console.error("Animation error:", error);
             setIsSpinning(false);
