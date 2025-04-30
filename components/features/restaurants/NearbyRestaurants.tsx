@@ -117,7 +117,12 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                             photos: details.photos || [],
                             price_level: details.price_level,
                             opening_hours: details.opening_hours,
-                            geometry: details.geometry
+                            geometry: {
+                                location: {
+                                    lat: details.geometry?.location?.lat() || 0,
+                                    lng: details.geometry?.location?.lng() || 0
+                                }
+                            }
                         } as Restaurant;
                     })
                 );
