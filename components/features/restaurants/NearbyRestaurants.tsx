@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useLoadScript } from '@react-google-maps/api';
-import { Restaurant } from './types';
+import { Restaurant } from '@/types/restaurant';
 import { RestaurantCard } from './card/RestaurantCard';
 import { ImageModal } from './modals/ImageModal';
 import { RestaurantModal } from './modals/RestaurantModal';
@@ -100,20 +100,24 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                         });
 
                         return {
+                            id: place.place_id as string,
                             name: place.name || '',
+                            description: place.vicinity || '',
+                            imageUrl: details.photos?.[0]?.getUrl({ maxWidth: 400, maxHeight: 400 }) || '',
+                            rating: place.rating || 0,
+                            priceRange: details.price_level ? '$'.repeat(details.price_level) : '',
+                            cuisine: place.types?.[0]?.replace(/_/g, ' ') || 'Restaurant',
+                            location: place.vicinity || '',
+                            openingHours: details.opening_hours?.weekday_text?.[new Date().getDay()] || '',
+                            contact: '',
+                            // Google Places API specific fields
                             vicinity: place.vicinity || '',
-                            rating: place.rating,
                             types: place.types || [],
                             place_id: place.place_id as string,
                             photos: details.photos || [],
                             price_level: details.price_level,
                             opening_hours: details.opening_hours,
-                            geometry: {
-                                location: {
-                                    lat: details.geometry?.location?.lat() || 0,
-                                    lng: details.geometry?.location?.lng() || 0
-                                }
-                            }
+                            geometry: details.geometry
                         } as Restaurant;
                     })
                 );

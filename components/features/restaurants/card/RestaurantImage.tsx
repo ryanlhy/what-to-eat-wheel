@@ -1,3 +1,5 @@
+import { Restaurant } from '@/types/restaurant';
+
 interface RestaurantImageProps {
     photos?: {
         getUrl: (options: { maxWidth: number; maxHeight: number }) => string;

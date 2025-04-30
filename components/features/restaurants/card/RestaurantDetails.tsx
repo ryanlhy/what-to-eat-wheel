@@ -1,4 +1,4 @@
-import { Restaurant } from '../../types';
+import { Restaurant } from '@/types/restaurant';
 
 interface RestaurantDetailsProps {
     restaurant: Restaurant;
@@ -75,7 +75,7 @@ export const RestaurantDetails = ({ restaurant, userLocation, onCardClick }: Res
                 )}
                 <span className="text-gray-400"> • </span>
                 <span className="text-gray-600">
-                    {restaurant.types[0]?.replace(/_/g, ' ')}
+                    {restaurant.types?.[0]?.replace(/_/g, ' ') || 'Restaurant'}
                 </span>
             </div>
 

@@ -1,4 +1,4 @@
-import { Restaurant } from '../../types';
+import { Restaurant } from '@/types/restaurant';
 import { RestaurantImage } from './RestaurantImage';
 import { RestaurantDetails } from './RestaurantDetails';
 

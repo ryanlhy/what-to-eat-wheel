@@ -1,4 +1,4 @@
-import { Restaurant } from '../../types';
+import { Restaurant } from '@/types/restaurant';
 
 interface RestaurantModalProps {
     restaurant: Restaurant | null;
