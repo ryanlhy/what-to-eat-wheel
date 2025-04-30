@@ -1,4 +1,4 @@
-export type FoodCategory = 'japanese' | 'indian' | 'chinese' | 'vegetarian' | 'korean' | 'thai' | 'hawker' | 'healthy' | 'quick' | 'special' | 'veg' | 'halal' | 'italian'
+export type FoodCategory = 'japanese' | 'indian' | 'chinese' | 'vegetarian' | 'korean' | 'thai' | 'hawker' | 'healthy' | 'quick' | 'special' | 'veg' | 'halal' | 'italian' | 'mexican' | 'spanish' | 'american' | 'vietnamese' | 'french' | 'mediterranean'
 
 export interface FoodItem {
   id: string

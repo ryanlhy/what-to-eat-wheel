@@ -116,6 +116,58 @@
   --_idx: 7; 
   background: #E91E63; /* Italian */
 }
+:where(.ui-wheel-of-fortune) ul li:nth-of-type(8) { 
+  --_idx: 8; 
+  background: #FF9800; /* Mexican */
+}
+:where(.ui-wheel-of-fortune) ul li:nth-of-type(9) { 
+  --_idx: 9; 
+  background: #FFC107; /* Spanish */
+}
+:where(.ui-wheel-of-fortune) ul li:nth-of-type(10) { 
+  --_idx: 10; 
+  background: #795548; /* American */
+}
+:where(.ui-wheel-of-fortune) ul li:nth-of-type(11) { 
+  --_idx: 11; 
+  background: #3F51B5; /* Korean */
+}
+:where(.ui-wheel-of-fortune) ul li:nth-of-type(12) { 
+  --_idx: 12; 
+  background: #009688; /* Vietnamese */
+}
+:where(.ui-wheel-of-fortune) ul li:nth-of-type(13) { 
+  --_idx: 13; 
+  background: #673AB7; /* French */
+}
+:where(.ui-wheel-of-fortune) ul li:nth-of-type(14) { 
+  --_idx: 14; 
+  background: #CDDC39; /* Mediterranean */
+}
+:where(.ui-wheel-of-fortune) ul li:nth-of-type(15) { 
+  --_idx: 15; 
+  background: #607D8B; /* Japanese */
+}
+
+/* Color classes for each cuisine */
+.bg-hawker { background-color: #FF6B35; }
+.bg-healthy { background-color: #4CAF50; }
+.bg-quick { background-color: #2196F3; }
+.bg-special { background-color: #9C27B0; }
+.bg-veg { background-color: #8BC34A; }
+.bg-halal { background-color: #00BCD4; }
+.bg-italian { background-color: #E91E63; }
+.bg-mexican { background-color: #FF9800; }
+.bg-spanish { background-color: #FFC107; }
+.bg-american { background-color: #795548; }
+.bg-korean { background-color: #3F51B5; }
+.bg-vietnamese { background-color: #009688; }
+.bg-french { background-color: #673AB7; }
+.bg-mediterranean { background-color: #CDDC39; }
+.bg-japanese { background-color: #607D8B; }
+.bg-indian { background-color: #FF5722; }
+.bg-chinese { background-color: #F44336; }
+.bg-thai { background-color: #FFEB3B; }
 
 /* Food result card */
 .food-result-card {
