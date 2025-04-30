@@ -18,6 +18,12 @@ interface Restaurant {
         open_now?: boolean;
         weekday_text?: string[];
     };
+    geometry?: {
+        location: {
+            lat: number;
+            lng: number;
+        };
+    };
 }
 
 interface NearbyRestaurantsProps {
@@ -75,6 +81,7 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                 const results = await new Promise<google.maps.places.PlaceResult[]>((resolve, reject) => {
                     service.nearbySearch(request, (results, status) => {
                         if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+                            console.log('Nearby Search Results:', results);
                             resolve(results.slice(0, 10));
                         } else {
                             reject(new Error('Error finding nearby restaurants'));
@@ -98,11 +105,13 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                                         'types',
                                         'vicinity',
                                         'website',
-                                        'url'
+                                        'url',
+                                        'geometry'
                                     ]
                                 },
                                 (details, status) => {
                                     if (status === google.maps.places.PlacesServiceStatus.OK && details) {
+                                        console.log('Place Details:', details);
                                         resolve(details);
                                     } else {
                                         reject(new Error('Error getting place details'));
@@ -119,7 +128,13 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                             place_id: place.place_id as string,
                             photos: details.photos || [],
                             price_level: details.price_level,
-                            opening_hours: details.opening_hours
+                            opening_hours: details.opening_hours,
+                            geometry: {
+                                location: {
+                                    lat: details.geometry?.location?.lat() || 0,
+                                    lng: details.geometry?.location?.lng() || 0
+                                }
+                            }
                         } as Restaurant;
                     })
                 );
@@ -158,6 +173,24 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
         setSelectedImage(null);
     };
 
+    const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): string => {
+        const R = 6371; // Radius of the earth in km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const distance = R * c;
+
+        // Convert to meters if less than 1km
+        if (distance < 1) {
+            return `${Math.round(distance * 1000)}m`;
+        }
+        return `${distance.toFixed(1)}km`;
+    };
+
     if (loadError) return (
         <div className="p-4 text-red-600 bg-red-50 rounded-lg">
             Error loading maps
@@ -193,14 +226,17 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                     {restaurants.map((restaurant) => (
                         <div
                             key={restaurant.place_id}
-                            className="flex flex-col md:flex-row items-start pb-6 border-b border-gray-200 last:border-0 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                            className="flex flex-col md:flex-row items-start pb-6 border-b border-gray-200 last:border-0 p-2 rounded-lg"
                         >
                             {/* Restaurant Image - Full width on mobile, 1/4 on desktop */}
                             <div className="w-full md:w-1/4 mb-4 md:mb-0">
                                 {restaurant.photos?.[0] ? (
                                     <div
                                         className="w-full aspect-square relative rounded-lg overflow-hidden cursor-pointer"
-                                        onClick={() => handleImageClick(restaurant.photos![0])}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleImageClick(restaurant.photos![0]);
+                                        }}
                                     >
                                         <img
                                             src={restaurant.photos[0].getUrl({ maxWidth: 400, maxHeight: 400 })}
@@ -232,11 +268,13 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                             <div className="hidden md:block h-32 w-px bg-gray-200 mx-4" />
 
                             {/* Restaurant Details - Full width on mobile, 3/4 on desktop */}
-                            <div className="w-full md:w-3/4 md:pl-4">
+                            <div
+                                className="w-full md:w-3/4 md:pl-4 cursor-pointer hover:bg-gray-50 transition-colors p-2 rounded-lg"
+                                onClick={() => setSelectedRestaurant(restaurant)}
+                            >
                                 <div className="flex items-start justify-between gap-2">
                                     <h4
-                                        className="font-medium text-base text-gray-900 cursor-pointer hover:text-blue-600 transition-colors"
-                                        onClick={() => setSelectedRestaurant(restaurant)}
+                                        className="font-medium text-base text-gray-900 hover:text-blue-600 transition-colors"
                                     >
                                         {restaurant.name}
                                     </h4>
@@ -262,6 +300,19 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                                             </span>
                                         </>
                                     )}
+                                    {userLocation && restaurant.geometry && (
+                                        <>
+                                            <span className="text-gray-400">•</span>
+                                            <span className="text-gray-600">
+                                                {calculateDistance(
+                                                    userLocation.lat,
+                                                    userLocation.lng,
+                                                    restaurant.geometry.location.lat,
+                                                    restaurant.geometry.location.lng
+                                                )}
+                                            </span>
+                                        </>
+                                    )}
                                     <span className="text-gray-400"> • </span>
                                     <span className="text-gray-600">
                                         {restaurant.types[0]?.replace(/_/g, ' ')}
@@ -273,13 +324,27 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                                 </p>
 
                                 {restaurant.opening_hours?.weekday_text && (
-                                    <div className="mt-2">
-                                        <p className="text-sm font-medium text-gray-700">Opening Hours:</p>
-                                        <p className="text-sm text-gray-600">
-                                            {restaurant.opening_hours.weekday_text[new Date().getDay()]}
-                                        </p>
+                                    <div className="mt-2 flex items-center gap-2">
+                                        <span className="text-sm font-medium text-gray-700">Hours:</span>
+                                        <span className="text-sm text-gray-600">
+                                            {restaurant.opening_hours.weekday_text[new Date().getDay()].split(': ')[1]}
+                                        </span>
                                     </div>
                                 )}
+                                <div className="mt-4">
+                                    <a
+                                        href={`https://www.google.com/maps/dir/?api=1&destination=${restaurant.name}&destination_place_id=${restaurant.place_id}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                        </svg>
+                                        Get Directions
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     ))}
