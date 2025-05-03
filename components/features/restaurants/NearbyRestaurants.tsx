@@ -10,6 +10,184 @@ import { RestaurantModal } from './modals/RestaurantModal';
 // Define libraries array outside component to prevent re-renders
 const libraries: Libraries = ['places'];
 
+// Helper functions for determining if a restaurant is open
+const determineIfOpenNow = (currentOpeningHours: any): boolean => {
+    if (!currentOpeningHours) {
+        console.log("No opening hours data available");
+        return false;
+    }
+
+    console.log('===== Raw Opening Hours Data =====', currentOpeningHours);
+
+    // If the API directly provides this information
+    if (typeof currentOpeningHours.openNow === 'boolean') {
+        console.log(`API directly provided open_now: ${currentOpeningHours.openNow}`);
+        return currentOpeningHours.openNow;
+    }
+
+    // Otherwise, we need to calculate it from the opening hours data
+    try {
+        const now = new Date();
+        const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+        const currentTime = now.getHours() * 100 + now.getMinutes(); // Format: 1430 for 2:30 PM
+
+        console.log(`Current time: ${now.getHours()}:${now.getMinutes()} (${currentTime}), Day: ${dayOfWeek}`);
+
+        // Get today's hours from weekday descriptions
+        const todayHours = currentOpeningHours.weekdayDescriptions?.[dayOfWeek];
+        if (!todayHours) {
+            console.log("No hours available for today");
+            return false;
+        }
+
+        console.log(`Today's hours: ${todayHours}`);
+
+        // Parse the hours string (format usually like "Monday: 9:00 AM – 10:00 PM")
+        const hoursMatch = todayHours.split(': ')[1];
+
+        // Handle "Closed" case
+        if (hoursMatch === 'Closed') {
+            console.log("Restaurant is closed today");
+            return false;
+        }
+
+        console.log(`Hours: ${hoursMatch}`);
+
+        // Parse opening hours ranges (handle multiple ranges like "9:00 AM – 2:00 PM, 5:00 PM – 10:00 PM")
+        const timeRanges = hoursMatch.split(', ');
+
+        console.log(`Found ${timeRanges.length} time ranges`);
+
+        for (const range of timeRanges) {
+            console.log(`Checking range: ${range}`);
+            // Handle both en dash (–) and regular hyphen (-) that might appear in time ranges
+            const parts = range.includes('–') ? range.split('–') : range.split('-');
+            if (parts.length !== 2) {
+                console.log(`Invalid range format: ${range}`);
+                continue;
+            }
+
+            const start = parts[0].trim();
+            const end = parts[1].trim();
+
+            console.log(`Start time: "${start}", End time: "${end}"`);
+
+            // Convert time strings to numeric format (e.g., "9:00 AM" -> 900, "10:00 PM" -> 2200)
+            const startTime = convertTimeStringToNumber(start);
+            const endTime = convertTimeStringToNumber(end);
+
+            console.log(`Checking if current time ${currentTime} is between ${startTime} and ${endTime}`);
+
+            // Check if current time is within this range
+            if (isTimeInRange(currentTime, startTime, endTime)) {
+                console.log("Restaurant is currently open!");
+                return true;
+            }
+        }
+
+        console.log("Restaurant is currently closed - not within any time range");
+        return false;
+    } catch (error) {
+        console.error('Error parsing opening hours:', error);
+        return false;
+    }
+};
+
+const convertTimeStringToNumber = (timeString: string): number => {
+    try {
+        // For cases where the time doesn't have a meridiem specified
+        if (!timeString.includes('AM') && !timeString.includes('PM')) {
+            // Default to PM for times like "5:30" in "5:30 - 10:30 PM"
+            if (timeString.includes(':')) {
+                const [hourStr, minuteStr] = timeString.split(':');
+                const hour = parseInt(hourStr, 10);
+                const minutes = parseInt(minuteStr, 10);
+
+                if (hour < 12) { // Assume PM for times without meridiem during evening hours
+                    console.log(`Assuming PM for time without meridiem: ${timeString} → ${hour + 12}:${minutes}`);
+                    return (hour + 12) * 100 + minutes;
+                } else {
+                    return hour * 100 + minutes;
+                }
+            }
+            return 0;
+        }
+
+        // Normal handling for times with AM/PM
+        if (timeString.includes(':')) {
+            // Extract the time parts
+            let hour, minutes;
+            let isPM = false;
+
+            if (timeString.includes('PM')) {
+                isPM = true;
+                const timePart = timeString.replace('PM', '').trim();
+                const [hourStr, minuteStr] = timePart.split(':');
+                hour = parseInt(hourStr, 10);
+                minutes = parseInt(minuteStr, 10);
+            } else { // AM
+                const timePart = timeString.replace('AM', '').trim();
+                const [hourStr, minuteStr] = timePart.split(':');
+                hour = parseInt(hourStr, 10);
+                minutes = parseInt(minuteStr, 10);
+            }
+
+            // Adjust for PM
+            if (isPM && hour < 12) {
+                hour += 12;
+            }
+            // Adjust for 12 AM
+            if (!isPM && hour === 12) {
+                hour = 0;
+            }
+
+            const result = hour * 100 + minutes;
+            console.log(`Converted ${timeString} to ${hour}:${minutes} (${result})`);
+            return result;
+        }
+
+        return 0;
+    } catch (error) {
+        console.error(`Error parsing time string: ${timeString}`, error);
+        return 0;
+    }
+};
+
+const isTimeInRange = (time: number, start: number, end: number): boolean => {
+    // Handle invalid inputs
+    if (isNaN(time) || isNaN(start) || isNaN(end)) {
+        console.error(`Invalid time values: time=${time}, start=${start}, end=${end}`);
+        return false;
+    }
+
+    // Afternoon hours where end appears numerically smaller than start
+    // For example: 11:30 (1130) to 3:30 PM (1530)
+    // But 1530 is stored as 330 if PM conversion fails
+    if (start > 1000 && end < 1000) {
+        // This is likely a PM time that wasn't converted properly
+        // For afternoon hours (e.g., 11:30 AM to 3:30 PM), we should treat end as PM (1500+)
+        const correctedEnd = end + 1200;
+        console.log(`Correcting afternoon end time: ${end} → ${correctedEnd}`);
+
+        const isOpen = time >= start && time <= correctedEnd;
+        console.log(`Corrected afternoon hours: ${start}-${correctedEnd}, current=${time}, open=${isOpen}`);
+        return isOpen;
+    }
+
+    // True overnight hours (e.g., 10:00 PM to 2:00 AM)
+    // PM hours should be 2000+ and AM hours should be <1200
+    if (start >= 2000 && end < 1200) {
+        const isOpen = time >= start || time <= end;
+        console.log(`Overnight hours: ${start}-${end}, current=${time}, open=${isOpen}`);
+        return isOpen;
+    }
+
+    // Standard hours (e.g., 9:00 AM to 5:00 PM)
+    const isOpen = time >= start && time <= end;
+    console.log(`Standard hours: ${start}-${end}, current=${time}, open=${isOpen}`);
+    return isOpen;
+};
+
 // Define fields that are considered "essential" (lower cost)
 const ESSENTIAL_FIELDS = [
     'places.id',
@@ -126,7 +304,8 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
             photos: photosWithGetUrl,
             price_level: data.priceLevel || place.priceLevel,
             opening_hours: {
-                weekday_text: data.currentOpeningHours?.weekdayDescriptions
+                weekday_text: data.currentOpeningHours?.weekdayDescriptions,
+                open_now: determineIfOpenNow(data.currentOpeningHours)
             },
             geometry: {
                 location: {
@@ -215,6 +394,7 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                     }
 
                     const textSearchData = await textSearchResponse.json();
+                    console.log('===== Places API Text Search Response =====', textSearchData);
                     places = textSearchData.places || [];
                 } else {
                     // Use Nearby Search (New) API when no cuisine is provided
@@ -252,6 +432,7 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                     }
 
                     const nearbyData = await nearbyResponse.json();
+                    console.log('===== Places API Nearby Search Response =====', nearbyData);
                     places = nearbyData.places || [];
                 }
 
@@ -259,6 +440,17 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                 const processedRestaurants = places.map((place: any) => {
                     const placeId = place.id;
                     const now = Date.now();
+
+                    console.log('===== Raw Place Data =====', {
+                        id: place.id,
+                        name: place.displayName?.text,
+                        formattedAddress: place.formattedAddress,
+                        location: place.location,
+                        rating: place.rating,
+                        types: place.types,
+                        priceLevel: place.priceLevel,
+                        currentOpeningHours: place.currentOpeningHours
+                    });
 
                     // Check if we have a valid cached entry
                     if (
@@ -270,6 +462,8 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
 
                     // Convert to Restaurant type using only the data from the search API
                     const restaurant = convertToRestaurant(place);
+
+                    console.log('===== Processed Restaurant Object =====', restaurant);
 
                     // Cache the result
                     restaurantCache.current[placeId] = {
