@@ -1,11 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { useLoadScript } from '@react-google-maps/api';
+import { useLoadScript, Libraries } from '@react-google-maps/api';
 import { Restaurant } from '@/types/restaurant';
 import { RestaurantCard } from './card/RestaurantCard';
 import { ImageModal } from './modals/ImageModal';
 import { RestaurantModal } from './modals/RestaurantModal';
+
+// Define libraries array outside component to prevent re-renders
+const libraries: Libraries = ['places'];
 
 interface NearbyRestaurantsProps {
     cuisine: string;
@@ -21,7 +24,7 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
 
     const { isLoaded, loadError } = useLoadScript({
         googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
-        libraries: ['places']
+        libraries
     });
 
     useEffect(() => {
@@ -45,82 +48,151 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
     }, []);
 
     useEffect(() => {
-        const searchNearbyRestaurants = async () => {
+        const searchRestaurants = async () => {
             if (!isLoaded || !userLocation) return;
 
-            const map = new google.maps.Map(document.createElement('div'));
-            const service = new google.maps.places.PlacesService(map);
-
-            const request = {
-                location: new google.maps.LatLng(userLocation.lat, userLocation.lng),
-                radius: 5000,
-                type: 'restaurant',
-                keyword: cuisine
-            };
-
             try {
-                const results = await new Promise<google.maps.places.PlaceResult[]>((resolve, reject) => {
-                    service.nearbySearch(request, (results, status) => {
-                        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-                            resolve(results.slice(0, 10));
-                        } else {
-                            reject(new Error('Error finding nearby restaurants'));
-                        }
-                    });
-                });
+                let places: any[] = [];
+                console.log(`Searching for: ${cuisine ? `${cuisine} restaurants` : 'nearby restaurants'}`);
 
-                const detailedRestaurants = await Promise.all(
-                    results.map(async (place) => {
-                        const details = await new Promise<google.maps.places.PlaceResult>((resolve, reject) => {
-                            service.getDetails(
-                                {
-                                    placeId: place.place_id as string,
-                                    fields: [
-                                        'photos',
-                                        'price_level',
-                                        'opening_hours',
-                                        'formatted_address',
-                                        'name',
-                                        'rating',
-                                        'types',
-                                        'vicinity',
-                                        'website',
-                                        'url',
-                                        'geometry'
-                                    ]
+                // If cuisine is provided, use Text Search API instead of Nearby Search
+                if (cuisine) {
+                    // Use Text Search (New) API
+                    const textSearchUrl = new URL('https://places.googleapis.com/v1/places:searchText');
+
+                    // Build a more specific query with cuisine type and "restaurant"
+                    const queryText = cuisine.trim() ? `${cuisine} restaurant` : 'restaurant';
+
+                    const textSearchBody = {
+                        textQuery: queryText,
+                        locationBias: {
+                            circle: {
+                                center: {
+                                    latitude: userLocation.lat,
+                                    longitude: userLocation.lng
                                 },
-                                (details, status) => {
-                                    if (status === google.maps.places.PlacesServiceStatus.OK && details) {
-                                        resolve(details);
-                                    } else {
-                                        reject(new Error('Error getting place details'));
-                                    }
-                                }
-                            );
+                                radius: 5000
+                            }
+                        },
+                        // Note: Text Search API doesn't support includedTypes parameter
+                        // We include "restaurant" directly in the textQuery instead
+                        maxResultCount: 5,
+                        languageCode: 'en'
+                    };
+
+                    console.log('Text Search Request:', JSON.stringify(textSearchBody));
+
+                    const textSearchResponse = await fetch(textSearchUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Goog-Api-Key': process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+                            'X-Goog-FieldMask': 'places.displayName,places.id,places.formattedAddress,places.rating,places.priceLevel,places.types'
+                        },
+                        body: JSON.stringify(textSearchBody)
+                    });
+
+                    if (!textSearchResponse.ok) {
+                        const errorText = await textSearchResponse.text();
+                        throw new Error(`Error fetching restaurants: ${textSearchResponse.status} ${textSearchResponse.statusText} - ${errorText}`);
+                    }
+
+                    const textSearchData = await textSearchResponse.json();
+                    places = textSearchData.places || [];
+                } else {
+                    // Use Nearby Search (New) API when no cuisine is provided
+                    const nearbySearchUrl = new URL('https://places.googleapis.com/v1/places:searchNearby');
+
+                    const nearbySearchBody = {
+                        includedTypes: ['restaurant'],
+                        locationRestriction: {
+                            circle: {
+                                center: {
+                                    latitude: userLocation.lat,
+                                    longitude: userLocation.lng
+                                },
+                                radius: 5000
+                            }
+                        },
+                        rankPreference: 'DISTANCE',
+                        maxResultCount: 10,
+                        languageCode: 'en'
+                    };
+
+                    console.log('Nearby Search Request:', JSON.stringify(nearbySearchBody));
+
+                    const nearbyResponse = await fetch(nearbySearchUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Goog-Api-Key': process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+                            'X-Goog-FieldMask': 'places.displayName,places.id,places.formattedAddress,places.rating,places.priceLevel,places.types'
+                        },
+                        body: JSON.stringify(nearbySearchBody)
+                    });
+
+                    if (!nearbyResponse.ok) {
+                        const errorText = await nearbyResponse.text();
+                        throw new Error(`Error fetching nearby restaurants: ${nearbyResponse.status} ${nearbyResponse.statusText} - ${errorText}`);
+                    }
+
+                    const nearbyData = await nearbyResponse.json();
+                    places = nearbyData.places || [];
+                }
+
+                console.log(`Found ${places.length} places`);
+
+                // Step 2: Fetch detailed information for each place
+                const detailedRestaurants = await Promise.all(
+                    places.map(async (place: any) => {
+                        // Use Place Details (New) API
+                        const detailsUrl = new URL(`https://places.googleapis.com/v1/places/${place.id}`);
+
+                        const detailsResponse = await fetch(detailsUrl, {
+                            method: 'GET',
+                            headers: {
+                                'X-Goog-Api-Key': process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+                                'X-Goog-FieldMask': 'id,displayName,formattedAddress,location,photos,priceLevel,rating,types,websiteUri,googleMapsUri,currentOpeningHours'
+                            }
                         });
 
+                        if (!detailsResponse.ok) {
+                            throw new Error(`Error fetching place details: ${detailsResponse.statusText}`);
+                        }
+
+                        const details = await detailsResponse.json();
+
+                        // Create a photo accessor function that mimics the legacy API
+                        const photosWithGetUrl = details.photos?.map((photo: any) => ({
+                            getUrl: (options: { maxWidth: number; maxHeight: number }) =>
+                                `https://places.googleapis.com/v1/${photo.name}/media?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}&maxHeightPx=${options.maxHeight}&maxWidthPx=${options.maxWidth}`
+                        })) || [];
+
+                        // Convert the new API format to match your existing Restaurant type
                         return {
-                            id: place.place_id as string,
-                            name: place.name || '',
-                            description: place.vicinity || '',
-                            imageUrl: details.photos?.[0]?.getUrl({ maxWidth: 400, maxHeight: 400 }) || '',
-                            rating: place.rating || 0,
-                            priceRange: details.price_level ? '$'.repeat(details.price_level) : '',
-                            cuisine: place.types?.[0]?.replace(/_/g, ' ') || 'Restaurant',
-                            location: place.vicinity || '',
-                            openingHours: details.opening_hours?.weekday_text?.[new Date().getDay()] || '',
+                            id: details.id,
+                            name: details.displayName?.text || '',
+                            description: details.formattedAddress || '',
+                            imageUrl: photosWithGetUrl[0]?.getUrl({ maxWidth: 400, maxHeight: 400 }) || '',
+                            rating: details.rating || 0,
+                            priceRange: details.priceLevel ? '$'.repeat(details.priceLevel) : '',
+                            cuisine: details.types?.[0]?.replace(/_/g, ' ') || 'Restaurant',
+                            location: details.formattedAddress || '',
+                            openingHours: details.currentOpeningHours?.weekdayDescriptions?.[new Date().getDay()] || '',
                             contact: '',
                             // Google Places API specific fields
-                            vicinity: place.vicinity || '',
-                            types: place.types || [],
-                            place_id: place.place_id as string,
-                            photos: details.photos || [],
-                            price_level: details.price_level,
-                            opening_hours: details.opening_hours,
+                            vicinity: details.formattedAddress || '',
+                            types: details.types || [],
+                            place_id: details.id,
+                            photos: photosWithGetUrl,
+                            price_level: details.priceLevel,
+                            opening_hours: {
+                                weekday_text: details.currentOpeningHours?.weekdayDescriptions
+                            },
                             geometry: {
                                 location: {
-                                    lat: details.geometry?.location?.lat() || 0,
-                                    lng: details.geometry?.location?.lng() || 0
+                                    lat: details.location?.latitude || 0,
+                                    lng: details.location?.longitude || 0
                                 }
                             }
                         } as Restaurant;
@@ -129,14 +201,15 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
 
                 setRestaurants(detailedRestaurants);
             } catch (err) {
-                setError(err instanceof Error ? err.message : 'Error finding nearby restaurants');
+                console.error('Error in search:', err);
+                setError(err instanceof Error ? err.message : 'Error finding restaurants');
             } finally {
                 setIsLoading(false);
             }
         };
 
         if (userLocation) {
-            searchNearbyRestaurants();
+            searchRestaurants();
         }
     }, [isLoaded, userLocation, cuisine]);
 
