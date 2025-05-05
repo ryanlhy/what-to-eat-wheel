@@ -213,6 +213,7 @@ export const FoodWheel = () => {
                         <div className="category-badge">
                             {selectedCategory}
                         </div>
+                        <h4 className="text-xl font-medium mb-2">Recommended Dish</h4>
                         <h3>{selectedFood.name}</h3>
                         <p>{selectedFood.description}</p>
                         <div className="health-rating">
