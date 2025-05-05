@@ -6,6 +6,7 @@ import { Restaurant } from '@/types/restaurant';
 import { RestaurantCard } from './card/RestaurantCard';
 import { ImageModal } from './modals/ImageModal';
 import { RestaurantModal } from './modals/RestaurantModal';
+import { createDummyRestaurantsWithPhotos } from '@/lib/constants/dummyRestaurants';
 
 // Define libraries array outside component to prevent re-renders
 const libraries: Libraries = ['places'];
@@ -231,6 +232,7 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
     const [showLoadMore, setShowLoadMore] = useState(false);
     const [page, setPage] = useState(1);
     const [hasSearched, setHasSearched] = useState(false);
+    const [usingDummyData, setUsingDummyData] = useState(false);
 
     // Local cache for restaurant details to reduce API calls
     const restaurantCache = useRef<Record<string, { data: Restaurant, timestamp: number }>>({});
@@ -245,6 +247,33 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
         libraries
     });
 
+    // Function to load dummy restaurant data
+    const loadDummyRestaurants = useCallback(() => {
+        setIsLoading(true);
+        try {
+            const dummyData = createDummyRestaurantsWithPhotos();
+
+            // Filter by cuisine if provided
+            const filteredData = cuisine
+                ? dummyData.filter(restaurant =>
+                    restaurant.cuisine.toLowerCase() === cuisine.toLowerCase() ||
+                    restaurant.types?.some(type => type.toLowerCase().includes(cuisine.toLowerCase())))
+                : dummyData;
+
+            setRestaurants(filteredData);
+            setDisplayedRestaurants(filteredData.slice(0, itemsPerPage));
+            setShowLoadMore(filteredData.length > itemsPerPage);
+            setPage(1);
+            setHasSearched(true);
+            setUsingDummyData(true);
+        } catch (err) {
+            console.error('Error loading dummy data:', err);
+            setError('Failed to load restaurant data.');
+        } finally {
+            setIsLoading(false);
+        }
+    }, [cuisine, itemsPerPage]);
+
     useEffect(() => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
@@ -255,15 +284,21 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                     });
                 },
                 (error) => {
-                    setError('Error getting location: ' + error.message);
-                    setIsLoading(false);
-                }
+                    console.error('Geolocation error:', error.message);
+                    // When loading dummy data, show a less alarming error message
+                    setError(null);
+                    // Load dummy data when geolocation fails
+                    loadDummyRestaurants();
+                },
+                // Add timeout options to ensure prompt response
+                { timeout: 5000, maximumAge: 0 }
             );
         } else {
             setError('Geolocation is not supported by this browser.');
-            setIsLoading(false);
+            // Load dummy data when geolocation is not supported
+            loadDummyRestaurants();
         }
-    }, []);
+    }, [loadDummyRestaurants]);
 
     // Handle pagination - Load more results
     const loadMoreResults = useCallback(() => {
@@ -474,6 +509,12 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                     return restaurant;
                 });
 
+                if (processedRestaurants.length === 0) {
+                    // If no restaurants found from API, use dummy data
+                    loadDummyRestaurants();
+                    return;
+                }
+
                 setRestaurants(processedRestaurants);
 
                 // Set first page of results
@@ -481,9 +522,12 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                 setShowLoadMore(processedRestaurants.length > itemsPerPage);
                 setPage(1);
                 setHasSearched(true);
+                setUsingDummyData(false);
             } catch (err) {
                 console.error('Error in search:', err);
                 setError(err instanceof Error ? err.message : 'Error finding restaurants');
+                // Load dummy data on API error
+                loadDummyRestaurants();
             } finally {
                 setIsLoading(false);
             }
@@ -492,7 +536,7 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
         if (userLocation) {
             searchRestaurants();
         }
-    }, [isLoaded, userLocation, cuisine, convertToRestaurant, shouldFetchNewData, itemsPerPage]);
+    }, [isLoaded, userLocation, cuisine, convertToRestaurant, shouldFetchNewData, itemsPerPage, loadDummyRestaurants]);
 
     const handleImageClick = (photo: { getUrl: (options: { maxWidth: number; maxHeight: number }) => string }) => {
         const highResUrl = photo.getUrl({ maxWidth: 1200, maxHeight: 1200 });
@@ -568,6 +612,17 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                         </div>
                     )}
                 </div>
+
+                {usingDummyData && (
+                    <div className="mt-6 p-3 bg-yellow-50 text-yellow-700 text-sm rounded-lg border border-yellow-200">
+                        <p className="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                            </svg>
+                            You are viewing sample restaurant data. Enable location services to see restaurants near you.
+                        </p>
+                    </div>
+                )}
             </div>
 
             <ImageModal
