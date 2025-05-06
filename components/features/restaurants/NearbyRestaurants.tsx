@@ -7,6 +7,7 @@ import { RestaurantCard } from './card/RestaurantCard';
 import { ImageModal } from './modals/ImageModal';
 import { RestaurantModal } from './modals/RestaurantModal';
 import { createDummyRestaurantsWithPhotos } from '@/lib/constants/dummyRestaurants';
+import { searchRestaurantsByCuisine } from '../wheel/restaurantSearch';
 
 // Define libraries array outside component to prevent re-renders
 const libraries: Libraries = ['places'];
@@ -219,9 +220,17 @@ const CACHE_DURATION = 24 * 60 * 60 * 1000;
 
 interface NearbyRestaurantsProps {
     cuisine: string;
+    prefetchedRestaurants?: Restaurant[];
+    nextPageToken?: string;
+    onNextPageTokenChange?: (token: string | undefined) => void;
 }
 
-export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
+export const NearbyRestaurants = ({
+    cuisine,
+    prefetchedRestaurants,
+    nextPageToken,
+    onNextPageTokenChange
+}: NearbyRestaurantsProps) => {
     const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
     const [displayedRestaurants, setDisplayedRestaurants] = useState<Restaurant[]>([]);
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -233,6 +242,7 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
     const [page, setPage] = useState(1);
     const [hasSearched, setHasSearched] = useState(false);
     const [usingDummyData, setUsingDummyData] = useState(false);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
 
     // Local cache for restaurant details to reduce API calls
     const restaurantCache = useRef<Record<string, { data: Restaurant, timestamp: number }>>({});
@@ -301,14 +311,61 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
     }, [loadDummyRestaurants]);
 
     // Handle pagination - Load more results
-    const loadMoreResults = useCallback(() => {
-        const nextPage = page + 1;
-        const endIndex = nextPage * itemsPerPage;
+    const loadMoreResults = useCallback(async () => {
+        if (!userLocation || isLoadingMore) return;
 
-        setDisplayedRestaurants(restaurants.slice(0, endIndex));
-        setPage(nextPage);
-        setShowLoadMore(endIndex < restaurants.length);
-    }, [page, restaurants, itemsPerPage]);
+        setIsLoadingMore(true);
+        try {
+            if (restaurants.length > displayedRestaurants.length) {
+                // If we have more restaurants in memory, just show more of them
+                const nextPage = page + 1;
+                const endIndex = nextPage * itemsPerPage;
+                setDisplayedRestaurants(restaurants.slice(0, endIndex));
+                setPage(nextPage);
+                setShowLoadMore(endIndex < restaurants.length || !!nextPageToken);
+            } else if (nextPageToken) {
+                // If we need to fetch more restaurants
+                console.log('🔄 Loading more restaurants:', {
+                    timestamp: new Date().toISOString(),
+                    pageToken: nextPageToken
+                });
+
+                const result = await searchRestaurantsByCuisine(
+                    cuisine,
+                    userLocation,
+                    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+                    nextPageToken
+                );
+
+                const newRestaurants = [...restaurants, ...result.restaurants];
+                setRestaurants(newRestaurants);
+                setDisplayedRestaurants(newRestaurants);
+                onNextPageTokenChange?.(result.nextPageToken);
+                setShowLoadMore(!!result.nextPageToken);
+
+                console.log('✨ More restaurants loaded:', {
+                    timestamp: new Date().toISOString(),
+                    newCount: result.restaurants.length,
+                    totalCount: newRestaurants.length,
+                    hasMorePages: !!result.nextPageToken
+                });
+            }
+        } catch (error) {
+            console.error('❌ Error loading more restaurants:', error);
+        } finally {
+            setIsLoadingMore(false);
+        }
+    }, [
+        userLocation,
+        isLoadingMore,
+        restaurants,
+        displayedRestaurants,
+        page,
+        itemsPerPage,
+        nextPageToken,
+        cuisine,
+        onNextPageTokenChange
+    ]);
 
     // Memoized function to convert API data to Restaurant type
     const convertToRestaurant = useCallback((place: any, details?: any) => {
@@ -366,6 +423,23 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
     }, [hasSearched]);
 
     useEffect(() => {
+        if (prefetchedRestaurants?.length) {
+            console.log('📦 Using prefetched restaurants:', {
+                count: prefetchedRestaurants.length,
+                hasNextPage: !!nextPageToken,
+                isLoading,
+                isLoadingMore
+            });
+            setIsLoading(false); // Ensure loading is false when using prefetched data
+            setRestaurants(prefetchedRestaurants);
+            setDisplayedRestaurants(prefetchedRestaurants.slice(0, itemsPerPage));
+            setShowLoadMore(prefetchedRestaurants.length > itemsPerPage || !!nextPageToken);
+            setPage(1);
+            setHasSearched(true);
+            setUsingDummyData(false);
+            return;
+        }
+
         const searchRestaurants = async () => {
             if (!isLoaded || !userLocation) return;
 
@@ -375,6 +449,12 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
             }
 
             setIsLoading(true);
+            console.log('🔍 Starting restaurant search:', {
+                cuisine,
+                location: userLocation,
+                isLoading: true,
+                isLoadingMore
+            });
 
             // Update the previous search parameters
             prevSearchParams.current = {
@@ -481,7 +561,7 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
 
                 // Set first page of results
                 setDisplayedRestaurants(processedRestaurants.slice(0, itemsPerPage));
-                setShowLoadMore(processedRestaurants.length > itemsPerPage);
+                setShowLoadMore(processedRestaurants.length > itemsPerPage || !!nextPageToken);
                 setPage(1);
                 setHasSearched(true);
                 setUsingDummyData(false);
@@ -493,12 +573,19 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
             } finally {
                 setIsLoading(false);
             }
+
+            console.log('✅ Search completed:', {
+                isLoading: false,
+                isLoadingMore,
+                showLoadMore,
+                restaurantCount: restaurants.length
+            });
         };
 
         if (userLocation) {
             searchRestaurants();
         }
-    }, [isLoaded, userLocation, cuisine, convertToRestaurant, shouldFetchNewData, itemsPerPage, loadDummyRestaurants]);
+    }, [isLoaded, userLocation, cuisine, prefetchedRestaurants, nextPageToken, convertToRestaurant, shouldFetchNewData, itemsPerPage, loadDummyRestaurants]);
 
     const handleImageClick = (photo: { getUrl: (options: { maxWidth: number; maxHeight: number }) => string }) => {
         const highResUrl = photo.getUrl({ maxWidth: 1200, maxHeight: 1200 });
@@ -551,24 +638,34 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                         />
                     ))}
 
-                    {isLoading && hasSearched && (
+                    {/* Loading states */}
+                    {isLoading && !isLoadingMore && (
+                        <div className="text-center p-4">
+                            <div className="animate-pulse">Finding nearby restaurants...</div>
+                        </div>
+                    )}
+
+                    {/* Load More button */}
+                    {showLoadMore && !isLoading && !isLoadingMore && (
+                        <div className="text-center pt-4">
+                            <button
+                                onClick={loadMoreResults}
+                                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
+                            >
+                                Load More Restaurants
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Loading more state */}
+                    {isLoadingMore && (
                         <div className="text-center p-4">
                             <div className="animate-pulse">Loading more restaurants...</div>
                         </div>
                     )}
 
-                    {showLoadMore && !isLoading && (
-                        <div className="text-center pt-4">
-                            <button
-                                onClick={loadMoreResults}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                Load More
-                            </button>
-                        </div>
-                    )}
-
-                    {!isLoading && displayedRestaurants.length === 0 && (
+                    {/* No results state */}
+                    {!isLoading && !isLoadingMore && displayedRestaurants.length === 0 && (
                         <div className="text-center p-4 text-gray-500">
                             No restaurants found. Try a different cuisine or location.
                         </div>

@@ -4,8 +4,10 @@ import { useState, useRef, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { FOOD_SECTIONS } from '@/lib/constants/foodData'
 import { FoodItem } from '@/types/food'
+import { Restaurant } from '@/types/restaurant'
 import '@/styles/wheel.css'
 import { NearbyRestaurants } from '../restaurants/NearbyRestaurants'
+import { searchRestaurantsByCuisine } from './restaurantSearch'
 
 const DEBUG_MODE = process.env.NEXT_PUBLIC_DEBUG_MODE === 'true'
 
@@ -15,6 +17,10 @@ export const FoodWheel = () => {
     const [selectedCategory, setSelectedCategory] = useState<string>('')
     const [debugInfo, setDebugInfo] = useState<string>('')
     const [showOverlay, setShowOverlay] = useState(false)
+    const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
+    const [nearbyRestaurants, setNearbyRestaurants] = useState<Restaurant[]>([])
+    const [isLoadingRestaurants, setIsLoadingRestaurants] = useState(false)
+    const [nextPageToken, setNextPageToken] = useState<string | undefined>(undefined)
     const wheelRef = useRef<HTMLUListElement>(null)
     const previousEndDegree = useRef(0)
 
@@ -36,6 +42,22 @@ export const FoodWheel = () => {
             document.body.style.overflow = 'auto'
         }
     }, [showOverlay])
+
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setUserLocation({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    });
+                },
+                (error) => {
+                    console.error('Geolocation error:', error);
+                }
+            );
+        }
+    }, []);
 
     const getSelectedSection = (rotation: number) => {
         const sectionAngle = 360 / FOOD_SECTIONS.length
@@ -60,67 +82,118 @@ export const FoodWheel = () => {
         return index
     }
 
-    const spinWheel = () => {
-        if (isSpinning || !wheelRef.current) return
+    const spinWheel = async () => {
+        if (isSpinning || !wheelRef.current) return;
 
-        setIsSpinning(true)
-        setSelectedFood(null)
-        setSelectedCategory('')
-        setDebugInfo('')
-        setShowOverlay(false)
+        console.log('🎡 Starting wheel spin:', {
+            timestamp: new Date().toISOString()
+        });
 
-        // Random rotation between 5 and 10 full spins plus a random section
-        const spins = 5 + Math.random() * 5
-        const randomAdditionalDegrees = spins * 360 + Math.random() * 360
-        const newEndDegree = previousEndDegree.current + randomAdditionalDegrees
+        setIsSpinning(true);
+        setSelectedFood(null);
+        setSelectedCategory('');
+        setDebugInfo('');
+        setShowOverlay(false);
+        setNearbyRestaurants([]);
 
-        // Apply the animation using the Web Animations API with a more gradual easing
+        const spins = 5 + Math.random() * 5;
+        const randomAdditionalDegrees = spins * 360 + Math.random() * 360;
+        const newEndDegree = previousEndDegree.current + randomAdditionalDegrees;
+
+        console.log('🎲 Wheel spin details:', {
+            spins,
+            totalDegrees: randomAdditionalDegrees,
+            finalDegree: newEndDegree
+        });
+
         const animation = wheelRef.current.animate([
             { transform: `rotate(${previousEndDegree.current}deg)` },
             { transform: `rotate(${newEndDegree}deg)` }
         ], {
-            duration: 7000, // Increased duration for more suspense
-            easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)', // More gradual easing for consistent slowdown
+            duration: 7000,
+            easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
             fill: 'forwards',
             iterations: 1
-        })
+        });
 
-        // Store the new end degree for the next spin
-        previousEndDegree.current = newEndDegree
+        previousEndDegree.current = newEndDegree;
 
-        // Use the animation's finished promise for reliable timing
+        // Calculate the selected section while the wheel is spinning
+        const finalRotation = newEndDegree % 360;
+        const selectedIndex = getSelectedSection(finalRotation);
+        const section = FOOD_SECTIONS[selectedIndex];
+
+        console.log('🎯 Selected section:', {
+            timestamp: new Date().toISOString(),
+            section: section.label,
+            index: selectedIndex
+        });
+
+        // Start searching for restaurants if we have user location
+        if (userLocation) {
+            console.log('🔄 Starting restaurant search during wheel spin:', {
+                timestamp: new Date().toISOString(),
+                cuisine: section.label,
+                location: userLocation
+            });
+
+            setIsLoadingRestaurants(true);
+            try {
+                const result = await searchRestaurantsByCuisine(
+                    section.label,
+                    userLocation,
+                    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!
+                );
+
+                console.log('✨ Restaurant search completed:', {
+                    timestamp: new Date().toISOString(),
+                    foundCount: result.restaurants.length,
+                    hasNextPage: !!result.nextPageToken
+                });
+
+                setNearbyRestaurants(result.restaurants);
+                setNextPageToken(result.nextPageToken);
+            } catch (error) {
+                console.error('❌ Restaurant search error:', error);
+            } finally {
+                setIsLoadingRestaurants(false);
+            }
+        } else {
+            console.log('📍 No user location available for restaurant search');
+        }
+
         animation.finished.then(() => {
-            // Add a suspenseful pause before revealing results
+            console.log('🎡 Wheel animation finished:', {
+                timestamp: new Date().toISOString()
+            });
+
             setTimeout(() => {
-                // Get the final rotation (0-360 degrees)
-                const finalRotation = newEndDegree % 360
-                const sectionAngle = 360 / FOOD_SECTIONS.length
+                const randomFood = section.items[Math.floor(Math.random() * section.items.length)];
 
-                // Get the selected section index
-                const selectedIndex = getSelectedSection(finalRotation)
-
-                // Get the section and a random food item from it
-                const section = FOOD_SECTIONS[selectedIndex]
-                const randomFood = section.items[Math.floor(Math.random() * section.items.length)]
-
-                // Debug information
-                const normalizedRotation = (finalRotation % 360 + 360) % 360
-                const reversedRotation = (360 - normalizedRotation) % 360
-                const offset = sectionAngle / 2 + sectionAngle
-                const withOffset = (reversedRotation + offset) % 360
-                const debug = `Final Rotation: ${finalRotation.toFixed(1)}°, Normalized: ${normalizedRotation.toFixed(1)}°, Reversed: ${reversedRotation.toFixed(1)}°, With Offset: ${withOffset.toFixed(1)}°, Section Angle: ${sectionAngle}°, Index: ${selectedIndex}, Section: ${section.label}`
                 if (DEBUG_MODE) {
-                    setDebugInfo(debug)
-                    console.log(debug)
+                    const normalizedRotation = (finalRotation % 360 + 360) % 360;
+                    const reversedRotation = (360 - normalizedRotation) % 360;
+                    const sectionAngle = 360 / FOOD_SECTIONS.length;
+                    const offset = sectionAngle / 2 + sectionAngle;
+                    const withOffset = (reversedRotation + offset) % 360;
+                    const debug = `Final Rotation: ${finalRotation.toFixed(1)}°, Normalized: ${normalizedRotation.toFixed(1)}°, Reversed: ${reversedRotation.toFixed(1)}°, With Offset: ${withOffset.toFixed(1)}°, Section Angle: ${sectionAngle}°, Index: ${selectedIndex}, Section: ${section.label}`;
+                    setDebugInfo(debug);
+                    console.log('🔍 Debug info:', debug);
                 }
 
-                setSelectedFood(randomFood)
-                setSelectedCategory(section.label)
-                setShowOverlay(true)
-                setIsSpinning(false)
-            }, 1000) // 1 second pause for suspense
+                setSelectedFood(randomFood);
+                setSelectedCategory(section.label);
+                setShowOverlay(true);
+                setIsSpinning(false);
+
+                console.log('🏁 Wheel spin completed:', {
+                    timestamp: new Date().toISOString(),
+                    selectedFood: randomFood.name,
+                    category: section.label
+                });
+            }, 1000);
         }).catch(error => {
-            console.error("Animation error:", error);
+            console.error("❌ Animation error:", error);
             setIsSpinning(false);
         });
     }
@@ -231,7 +304,10 @@ export const FoodWheel = () => {
                             <p className="cultural-info">{selectedFood.culturalInfo}</p>
                         )}
                         <NearbyRestaurants
-                            cuisine={selectedFood.cuisine || selectedCategory.toLowerCase()}
+                            cuisine={selectedFood?.cuisine || selectedCategory.toLowerCase()}
+                            prefetchedRestaurants={nearbyRestaurants}
+                            nextPageToken={nextPageToken}
+                            onNextPageTokenChange={setNextPageToken}
                         />
                     </motion.div>
                 )}
