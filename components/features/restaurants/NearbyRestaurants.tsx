@@ -431,44 +431,6 @@ export const NearbyRestaurants = ({ cuisine }: NearbyRestaurantsProps) => {
                     const textSearchData = await textSearchResponse.json();
                     console.log('===== Places API Text Search Response =====', textSearchData);
                     places = textSearchData.places || [];
-                } else {
-                    // Use Nearby Search (New) API when no cuisine is provided
-                    const nearbySearchUrl = new URL('https://places.googleapis.com/v1/places:searchNearby');
-
-                    const nearbySearchBody = {
-                        includedTypes: ['restaurant'],
-                        locationRestriction: {
-                            circle: {
-                                center: {
-                                    latitude: userLocation.lat,
-                                    longitude: userLocation.lng
-                                },
-                                radius: 5000
-                            }
-                        },
-                        rankPreference: 'DISTANCE',
-                        maxResultCount: 10, // Request more to enable pagination
-                        languageCode: 'en'
-                    };
-
-                    const nearbyResponse = await fetch(nearbySearchUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Goog-Api-Key': process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
-                            'X-Goog-FieldMask': initialFieldMask
-                        },
-                        body: JSON.stringify(nearbySearchBody)
-                    });
-
-                    if (!nearbyResponse.ok) {
-                        const errorText = await nearbyResponse.text();
-                        throw new Error(`Error fetching nearby restaurants: ${nearbyResponse.status} ${nearbyResponse.statusText} - ${errorText}`);
-                    }
-
-                    const nearbyData = await nearbyResponse.json();
-                    console.log('===== Places API Nearby Search Response =====', nearbyData);
-                    places = nearbyData.places || [];
                 }
 
                 // Process places directly without additional API calls
