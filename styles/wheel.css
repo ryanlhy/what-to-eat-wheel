@@ -300,15 +300,87 @@
     -webkit-clip-path: inset(0 0 0 0 round 50%);
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
+    /* Ensure proper circular clipping */
+    border-radius: 50%;
+    overflow: hidden;
   }
 
   :where(.ui-wheel-of-fortune) ul li {
+    /* Fix for iOS Safari segment sizing */
+    width: 50%; /* Force consistent width */
+    aspect-ratio: auto; /* Override the complex aspect-ratio calculation */
     -webkit-clip-path: polygon(0% 0%, 100% 50%, 0% 100%);
-    /* iOS Safari doesn't fully support the rotate property */
-    -webkit-transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1)));
-    transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1)));
-    -webkit-transform-origin: center right;
+    clip-path: polygon(0% 0%, 100% 50%, 0% 100%);
+    
+    /* Use explicit rotation angles instead of calc() */
+    -webkit-transform-origin: right center;
+    transform-origin: right center;
+    
+    /* Force hardware acceleration and prevent flickering */
     -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+  
+  /* Apply individual rotations for each section to ensure consistency */
+  :where(.ui-wheel-of-fortune) ul li:nth-of-type(1) { 
+    -webkit-transform: rotate(0deg); 
+    transform: rotate(0deg);
+  }
+  :where(.ui-wheel-of-fortune) ul li:nth-of-type(2) { 
+    -webkit-transform: rotate(24deg); 
+    transform: rotate(24deg);
+  }
+  :where(.ui-wheel-of-fortune) ul li:nth-of-type(3) { 
+    -webkit-transform: rotate(48deg); 
+    transform: rotate(48deg);
+  }
+  :where(.ui-wheel-of-fortune) ul li:nth-of-type(4) { 
+    -webkit-transform: rotate(72deg); 
+    transform: rotate(72deg);
+  }
+  :where(.ui-wheel-of-fortune) ul li:nth-of-type(5) { 
+    -webkit-transform: rotate(96deg); 
+    transform: rotate(96deg);
+  }
+  :where(.ui-wheel-of-fortune) ul li:nth-of-type(6) { 
+    -webkit-transform: rotate(120deg); 
+    transform: rotate(120deg);
+  }
+  :where(.ui-wheel-of-fortune) ul li:nth-of-type(7) { 
+    -webkit-transform: rotate(144deg); 
+    transform: rotate(144deg);
+  }
+  :where(.ui-wheel-of-fortune) ul li:nth-of-type(8) { 
+    -webkit-transform: rotate(168deg); 
+    transform: rotate(168deg);
+  }
+  :where(.ui-wheel-of-fortune) ul li:nth-of-type(9) { 
+    -webkit-transform: rotate(192deg); 
+    transform: rotate(192deg);
+  }
+  :where(.ui-wheel-of-fortune) ul li:nth-of-type(10) { 
+    -webkit-transform: rotate(216deg); 
+    transform: rotate(216deg);
+  }
+  :where(.ui-wheel-of-fortune) ul li:nth-of-type(11) { 
+    -webkit-transform: rotate(240deg); 
+    transform: rotate(240deg);
+  }
+  :where(.ui-wheel-of-fortune) ul li:nth-of-type(12) { 
+    -webkit-transform: rotate(264deg); 
+    transform: rotate(264deg);
+  }
+  :where(.ui-wheel-of-fortune) ul li:nth-of-type(13) { 
+    -webkit-transform: rotate(288deg); 
+    transform: rotate(288deg);
+  }
+  :where(.ui-wheel-of-fortune) ul li:nth-of-type(14) { 
+    -webkit-transform: rotate(312deg); 
+    transform: rotate(312deg);
+  }
+  :where(.ui-wheel-of-fortune) ul li:nth-of-type(15) { 
+    -webkit-transform: rotate(336deg); 
+    transform: rotate(336deg);
   }
 
   /* Fix button on iOS Safari */
@@ -321,8 +393,9 @@
 /* Fix for iPhone Safari rotation issues */
 @media not all and (min-resolution:.001dpcm) { 
   @supports (-webkit-appearance:none) {
-    :where(.ui-wheel-of-fortune) ul li {
-      transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1))) translateZ(0);
+    :where(.ui-wheel-of-fortune) ul {
+      /* Ensure wheel is properly circular */
+      border-radius: 50%;
     }
   }
 } 
