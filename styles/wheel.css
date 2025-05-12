@@ -325,4 +325,21 @@
       transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1))) translateZ(0);
     }
   }
+}
+
+/* Weight control styles */
+.weight-control-button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.weight-control-button:active {
+  transform: scale(0.95);
+}
+
+/* Add active state styles for mobile */
+@media (hover: none) {
+  .weight-control-button:active {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
 } 

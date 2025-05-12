@@ -16,6 +16,17 @@ module.exports = {
         'veg': '#8BC34A',       // Light green for vegetarian
         'halal': '#00BCD4',     // Cyan for halal options
         'italian': '#E91E63',   // Pink for Italian cuisine
+        'mexican': '#FF9800',
+        'spanish': '#FFC107',
+        'american': '#795548',
+        'korean': '#3F51B5',
+        'vietnamese': '#009688',
+        'french': '#673AB7',
+        'mediterranean': '#CDDC39',
+        'japanese': '#607D8B',
+        'indian': '#FF5722',
+        'chinese': '#F44336',
+        'thai': '#FFEB3B',
       },
       animation: {
         'spin-slow': 'spin 3s linear infinite',

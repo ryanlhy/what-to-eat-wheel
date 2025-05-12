@@ -8,6 +8,9 @@ import { Restaurant } from '@/types/restaurant'
 import '@/styles/wheel.css'
 import { NearbyRestaurants } from '../restaurants/NearbyRestaurants'
 import { searchRestaurantsByCuisine } from './restaurantSearch'
+import { WeightControls } from '../../preferences/WeightControls'
+import { Modal } from '@/components/preferences/PreferencesModal'
+import { AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline'
 
 const DEBUG_MODE = process.env.NEXT_PUBLIC_DEBUG_MODE === 'true'
 
@@ -21,8 +24,38 @@ export const FoodWheel = () => {
     const [nearbyRestaurants, setNearbyRestaurants] = useState<Restaurant[]>([])
     const [isLoadingRestaurants, setIsLoadingRestaurants] = useState(false)
     const [nextPageToken, setNextPageToken] = useState<string | undefined>(undefined)
+    const [showWeightControls, setShowWeightControls] = useState(false)
+    const [sectionWeights, setSectionWeights] = useState<Record<string, number>>(() =>
+        // Initialize with default weights
+        Object.fromEntries(FOOD_SECTIONS.map(section => [section.category, 1]))
+    )
     const wheelRef = useRef<HTMLUListElement>(null)
     const previousEndDegree = useRef(0)
+
+    // Load saved weights from localStorage on client side only
+    useEffect(() => {
+        const loadSavedWeights = () => {
+            try {
+                const savedWeights = localStorage.getItem('foodWheelWeights');
+                if (savedWeights) {
+                    const parsed = JSON.parse(savedWeights);
+                    // Validate the saved weights
+                    const isValid = FOOD_SECTIONS.every(section =>
+                        typeof parsed[section.category] === 'number' &&
+                        parsed[section.category] >= 1 &&
+                        parsed[section.category] <= 5
+                    );
+                    if (isValid) {
+                        setSectionWeights(parsed);
+                    }
+                }
+            } catch (e) {
+                console.error('Error loading saved weights:', e);
+            }
+        };
+
+        loadSavedWeights();
+    }, []);
 
     useEffect(() => {
         if (wheelRef.current) {
@@ -59,28 +92,30 @@ export const FoodWheel = () => {
         }
     }, []);
 
-    const getSelectedSection = (rotation: number) => {
-        const sectionAngle = 360 / FOOD_SECTIONS.length
+    const getWeightedRandomSection = () => {
+        // Create an array where each section appears multiple times based on its weight
+        const weightedSections = FOOD_SECTIONS.flatMap(section =>
+            Array(sectionWeights[section.category]).fill(section)
+        );
 
-        // 1. Normalize the rotation to 0-360
-        let normalizedRotation = (rotation % 360 + 360) % 360
+        return weightedSections[Math.floor(Math.random() * weightedSections.length)];
+    };
 
-        // 2. Reverse the direction since our wheel rotates clockwise
-        // but sections are numbered counting clockwise from the top
-        normalizedRotation = (360 - normalizedRotation) % 360
-
-        // 3. Account for the offset between the pointer (at top) and section alignment
-        // sectionAngle / 2 aligns with center of section
-        // sectionAngle * (sectionsCount / 4) provides dynamic adjustment based on number of sections
-        const sectionOffset = sectionAngle / 2 + sectionAngle * (FOOD_SECTIONS.length / 4)
-        console.log("sectionOffset", sectionOffset)
-        normalizedRotation = (normalizedRotation + sectionOffset) % 360
-
-        // 4. Calculate index based on the adjusted rotation
-        const index = Math.floor(normalizedRotation / sectionAngle)
-
-        return index
-    }
+    const handleWeightChange = (category: string, weight: number) => {
+        setSectionWeights(prev => {
+            const newWeights = {
+                ...prev,
+                [category]: weight
+            };
+            try {
+                // Save to localStorage only on client side
+                localStorage.setItem('foodWheelWeights', JSON.stringify(newWeights));
+            } catch (e) {
+                console.error('Error saving weights:', e);
+            }
+            return newWeights;
+        });
+    };
 
     const spinWheel = async () => {
         if (isSpinning || !wheelRef.current) return;
@@ -96,19 +131,30 @@ export const FoodWheel = () => {
         setShowOverlay(false);
         setNearbyRestaurants([]);
 
+        // Get weighted random section
+        const selectedSection = getWeightedRandomSection();
+
+        // Calculate the target rotation to land on this section
+        const sectionIndex = FOOD_SECTIONS.findIndex(s => s.category === selectedSection.category);
+        const sectionAngle = 360 / FOOD_SECTIONS.length;
+
+        // Add extra spins (5-10 full rotations) plus the target rotation
         const spins = 5 + Math.random() * 5;
-        const randomAdditionalDegrees = spins * 360 + Math.random() * 360;
-        const newEndDegree = previousEndDegree.current + randomAdditionalDegrees;
+        const baseRotation = sectionIndex * sectionAngle;
+        // Adjust the rotation to account for the wheel's orientation and pointer position
+        const adjustedRotation = (360 - baseRotation + sectionAngle * (FOOD_SECTIONS.length / 4)) % 360;
+        const totalRotation = (spins * 360) + adjustedRotation;
 
         console.log('🎲 Wheel spin details:', {
             spins,
-            totalDegrees: randomAdditionalDegrees,
-            finalDegree: newEndDegree
+            totalDegrees: totalRotation,
+            finalDegree: totalRotation,
+            selectedSection: selectedSection.label
         });
 
         const animation = wheelRef.current.animate([
             { transform: `rotate(${previousEndDegree.current}deg)` },
-            { transform: `rotate(${newEndDegree}deg)` }
+            { transform: `rotate(${totalRotation}deg)` }
         ], {
             duration: 7000,
             easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
@@ -116,31 +162,20 @@ export const FoodWheel = () => {
             iterations: 1
         });
 
-        previousEndDegree.current = newEndDegree;
-
-        // Calculate the selected section while the wheel is spinning
-        const finalRotation = newEndDegree % 360;
-        const selectedIndex = getSelectedSection(finalRotation);
-        const section = FOOD_SECTIONS[selectedIndex];
-
-        console.log('🎯 Selected section:', {
-            timestamp: new Date().toISOString(),
-            section: section.label,
-            index: selectedIndex
-        });
+        previousEndDegree.current = totalRotation;
 
         // Start searching for restaurants if we have user location
         if (userLocation) {
             console.log('🔄 Starting restaurant search during wheel spin:', {
                 timestamp: new Date().toISOString(),
-                cuisine: section.label,
+                cuisine: selectedSection.label,
                 location: userLocation
             });
 
             setIsLoadingRestaurants(true);
             try {
                 const result = await searchRestaurantsByCuisine(
-                    section.label,
+                    selectedSection.label,
                     userLocation,
                     process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!
                 );
@@ -158,8 +193,6 @@ export const FoodWheel = () => {
             } finally {
                 setIsLoadingRestaurants(false);
             }
-        } else {
-            console.log('📍 No user location available for restaurant search');
         }
 
         animation.finished.then(() => {
@@ -168,35 +201,30 @@ export const FoodWheel = () => {
             });
 
             setTimeout(() => {
-                const randomFood = section.items[Math.floor(Math.random() * section.items.length)];
+                const randomFood = selectedSection.items[Math.floor(Math.random() * selectedSection.items.length)];
 
                 if (DEBUG_MODE) {
-                    const normalizedRotation = (finalRotation % 360 + 360) % 360;
-                    const reversedRotation = (360 - normalizedRotation) % 360;
-                    const sectionAngle = 360 / FOOD_SECTIONS.length;
-                    const offset = sectionAngle / 2 + sectionAngle;
-                    const withOffset = (reversedRotation + offset) % 360;
-                    const debug = `Final Rotation: ${finalRotation.toFixed(1)}°, Normalized: ${normalizedRotation.toFixed(1)}°, Reversed: ${reversedRotation.toFixed(1)}°, With Offset: ${withOffset.toFixed(1)}°, Section Angle: ${sectionAngle}°, Index: ${selectedIndex}, Section: ${section.label}`;
+                    const debug = `Selected Section: ${selectedSection.label}, Final Rotation: ${totalRotation.toFixed(1)}°, Section Index: ${sectionIndex}`;
                     setDebugInfo(debug);
                     console.log('🔍 Debug info:', debug);
                 }
 
                 setSelectedFood(randomFood);
-                setSelectedCategory(section.label);
+                setSelectedCategory(selectedSection.label);
                 setShowOverlay(true);
                 setIsSpinning(false);
 
                 console.log('🏁 Wheel spin completed:', {
                     timestamp: new Date().toISOString(),
                     selectedFood: randomFood.name,
-                    category: section.label
+                    category: selectedSection.label
                 });
             }, 1000);
         }).catch(error => {
             console.error("❌ Animation error:", error);
             setIsSpinning(false);
         });
-    }
+    };
 
     return (
         <div className="flex flex-col items-center gap-8 p-8">
@@ -217,6 +245,14 @@ export const FoodWheel = () => {
                 </fieldset>
                 <div className="wheel-pointer" />
             </div>
+
+            <button
+                onClick={() => setShowWeightControls(true)}
+                className="flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors weight-control-button w-full max-w-[280px] sm:max-w-[320px]"
+            >
+                <AdjustmentsHorizontalIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="text-sm sm:text-base">Adjust Weights</span>
+            </button>
 
             {DEBUG_MODE && debugInfo && (
                 <div className="debug-info">
@@ -312,6 +348,30 @@ export const FoodWheel = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <Modal
+                isOpen={showWeightControls}
+                onClose={() => setShowWeightControls(false)}
+                title="Cuisine Preferences"
+            >
+                <WeightControls
+                    weights={sectionWeights}
+                    onWeightChange={(category, weight) => {
+                        setSectionWeights(prev => {
+                            const newWeights = {
+                                ...prev,
+                                [category]: weight
+                            };
+                            try {
+                                localStorage.setItem('foodWheelWeights', JSON.stringify(newWeights));
+                            } catch (e) {
+                                console.error('Error saving weights:', e);
+                            }
+                            return newWeights;
+                        });
+                    }}
+                />
+            </Modal>
         </div>
     )
 } 
