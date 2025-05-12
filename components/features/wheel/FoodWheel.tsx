@@ -344,7 +344,7 @@ export const FoodWheel = () => {
                                                                 ))}
                                                             </ul>
                                                         </div>
-                                                        {recommendation.suggestedRestaurants && recommendation.suggestedRestaurants.length > 0 && (
+                                                        {/* {recommendation.suggestedRestaurants && recommendation.suggestedRestaurants.length > 0 && (
                                                             <div>
                                                                 <h5 className="font-medium text-gray-700 mb-2">Suggested Restaurants:</h5>
                                                                 <ul className="list-disc list-inside space-y-1">
@@ -353,7 +353,7 @@ export const FoodWheel = () => {
                                                                     ))}
                                                                 </ul>
                                                             </div>
-                                                        )}
+                                                        )} */}
                                                     </div>
                                                 </motion.div>
                                             )}
