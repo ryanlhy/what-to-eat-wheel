@@ -11,8 +11,21 @@ import { searchRestaurantsByCuisine } from './restaurantSearch'
 import { WeightControls } from '../../preferences/WeightControls'
 import { Modal } from '@/components/preferences/PreferencesModal'
 import { AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline'
+import { CloudIcon, SunIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline'
+import { DEFAULT_LOCATION, Location } from '@/lib/constants/config'
+import { FALLBACK_FUN_FACTS } from '@/lib/constants/foodData'
 
 const DEBUG_MODE = process.env.NEXT_PUBLIC_DEBUG_MODE === 'true'
+
+interface WeatherData {
+    weather?: string;
+    funFact: string;
+    recommendedDishes?: {
+        dish: string;
+        nutrition: string[];
+        suggestedRestaurants: string[];
+    }[];
+}
 
 export const FoodWheel = () => {
     const [isSpinning, setIsSpinning] = useState(false)
@@ -20,7 +33,7 @@ export const FoodWheel = () => {
     const [selectedCategory, setSelectedCategory] = useState<string>('')
     const [debugInfo, setDebugInfo] = useState<string>('')
     const [showOverlay, setShowOverlay] = useState(false)
-    const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
+    const [userLocation, setUserLocation] = useState<Location | null>(null)
     const [nearbyRestaurants, setNearbyRestaurants] = useState<Restaurant[]>([])
     const [isLoadingRestaurants, setIsLoadingRestaurants] = useState(false)
     const [nextPageToken, setNextPageToken] = useState<string | undefined>(undefined)
@@ -29,8 +42,12 @@ export const FoodWheel = () => {
         // Initialize with default weights (these won't affect the actual selection)
         Object.fromEntries(FOOD_SECTIONS.map(section => [section.category, 1]))
     )
+    const [weatherData, setWeatherData] = useState<WeatherData | null>(null)
     const wheelRef = useRef<HTMLUListElement>(null)
     const previousEndDegree = useRef(0)
+    const [expandedDishes, setExpandedDishes] = useState<Record<number, boolean>>({});
+    const [isLoadingWeatherData, setIsLoadingWeatherData] = useState(false);
+    const [showWeatherSection, setShowWeatherSection] = useState(true);
 
     // Load saved weights from localStorage on client side only (for UI persistence only)
     useEffect(() => {
@@ -114,28 +131,83 @@ export const FoodWheel = () => {
         return index
     }
 
+    // Add a function to handle API timeout
+    const fetchWithTimeout = async (promise: Promise<Response>, timeout: number) => {
+        let timeoutId: NodeJS.Timeout;
+        const timeoutPromise = new Promise<never>((_, reject) => {
+            timeoutId = setTimeout(() => {
+                reject(new Error('Request timed out'));
+            }, timeout);
+        });
+
+        try {
+            const result = await Promise.race([promise, timeoutPromise]);
+            clearTimeout(timeoutId!);
+            return result;
+        } catch (error) {
+            clearTimeout(timeoutId!);
+            throw error;
+        }
+    };
+
     const spinWheel = async () => {
         if (isSpinning || !wheelRef.current) return;
-
-        console.log('🎡 Starting wheel spin:', {
-            timestamp: new Date().toISOString()
-        });
 
         setIsSpinning(true);
         setSelectedFood(null);
         setSelectedCategory('');
         setDebugInfo('');
+        setWeatherData(null);
+        setIsLoadingWeatherData(true);
+        setShowWeatherSection(true);
         setShowOverlay(false);
 
+        // Calculate wheel spin animation...
         const spins = 5 + Math.random() * 5;
         const randomAdditionalDegrees = spins * 360 + Math.random() * 360;
         const newEndDegree = previousEndDegree.current + randomAdditionalDegrees;
 
-        console.log('🎲 Wheel spin details:', {
-            spins,
-            totalDegrees: randomAdditionalDegrees,
-            finalDegree: newEndDegree
-        });
+        // Calculate selected section
+        const finalRotation = newEndDegree % 360;
+        const selectedIndex = getSelectedSection(finalRotation);
+        const section = FOOD_SECTIONS[selectedIndex];
+
+        // Start the API request with timeout
+        const weatherDataPromise = (async () => {
+            try {
+                const requestLocation = userLocation || DEFAULT_LOCATION;
+                const fetchPromise = fetch('/api/recommendations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        cuisine: section.label,
+                        lat: requestLocation.lat,
+                        lng: requestLocation.lng,
+                        current_weather: true
+                    })
+                });
+
+                const response = await fetchWithTimeout(fetchPromise, 11000); // 3 second timeout
+
+                if (!response.ok) {
+                    throw new Error(`API responded with status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                return data;
+            } catch (error) {
+                console.error('Error fetching recommendations:', error);
+                // Return fallback data on error
+                return {
+                    funFact: FALLBACK_FUN_FACTS[section.category.toLowerCase()]
+                };
+            }
+        })();
 
         const animation = wheelRef.current.animate([
             { transform: `rotate(${previousEndDegree.current}deg)` },
@@ -149,84 +221,46 @@ export const FoodWheel = () => {
 
         previousEndDegree.current = newEndDegree;
 
-        // Calculate the selected section while the wheel is spinning
-        const finalRotation = newEndDegree % 360;
-        const selectedIndex = getSelectedSection(finalRotation);
-        const section = FOOD_SECTIONS[selectedIndex];
+        // Wait for animation to finish
+        await animation.finished;
 
-        console.log('🎯 Selected section:', {
-            timestamp: new Date().toISOString(),
-            section: section.label,
-            index: selectedIndex
-        });
+        // Show modal immediately after spin ends
+        const randomFood = section.items[Math.floor(Math.random() * section.items.length)];
+        setSelectedFood(randomFood);
+        setSelectedCategory(section.label);
+        setShowOverlay(true);
+        setIsSpinning(false);
 
-        // Start searching for restaurants if we have user location
-        if (userLocation) {
-            console.log('🔄 Starting restaurant search during wheel spin:', {
-                timestamp: new Date().toISOString(),
-                cuisine: section.label,
-                location: userLocation
-            });
-
-            setIsLoadingRestaurants(true);
-            try {
-                const result = await searchRestaurantsByCuisine(
-                    section.label,
-                    userLocation,
-                    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!
-                );
-
-                console.log('✨ Restaurant search completed:', {
-                    timestamp: new Date().toISOString(),
-                    foundCount: result.restaurants.length,
-                    hasNextPage: !!result.nextPageToken
+        // Set a timeout for the loading state
+        const loadingTimeout = setTimeout(() => {
+            if (isLoadingWeatherData) {
+                setShowWeatherSection(false);
+                setIsLoadingWeatherData(false);
+                // Use fallback data
+                setWeatherData({
+                    funFact: FALLBACK_FUN_FACTS[section.category.toLowerCase()]
                 });
-
-                setNearbyRestaurants(result.restaurants);
-                setNextPageToken(result.nextPageToken);
-            } catch (error) {
-                console.error('❌ Restaurant search error:', error);
-            } finally {
-                setIsLoadingRestaurants(false);
             }
+        }, 3000);
+
+        // Get the weather data result
+        const weatherData = await weatherDataPromise;
+        clearTimeout(loadingTimeout);
+
+        if (weatherData) {
+            setWeatherData(weatherData);
+            setShowWeatherSection(!!weatherData.weather);
         }
+        setIsLoadingWeatherData(false);
+    };
 
-        animation.finished.then(() => {
-            console.log('🎡 Wheel animation finished:', {
-                timestamp: new Date().toISOString()
-            });
-
-            setTimeout(() => {
-                const randomFood = section.items[Math.floor(Math.random() * section.items.length)];
-
-                if (DEBUG_MODE) {
-                    const normalizedRotation = (finalRotation % 360 + 360) % 360;
-                    const reversedRotation = (360 - normalizedRotation) % 360;
-                    const sectionAngle = 360 / FOOD_SECTIONS.length;
-                    const offset = sectionAngle / 2 + sectionAngle;
-                    const withOffset = (reversedRotation + offset) % 360;
-                    const debug = `Final Rotation: ${finalRotation.toFixed(1)}°, Normalized: ${normalizedRotation.toFixed(1)}°, Reversed: ${reversedRotation.toFixed(1)}°, With Offset: ${withOffset.toFixed(1)}°, Section Angle: ${sectionAngle}°, Index: ${selectedIndex}, Section: ${section.label}`;
-                    setDebugInfo(debug);
-                    console.log('🔍 Debug info:', debug);
-                }
-
-                setSelectedFood(randomFood);
-                setSelectedCategory(section.label);
-                setShowOverlay(true);
-                setIsSpinning(false);
-
-                console.log('🏁 Wheel spin completed:', {
-                    timestamp: new Date().toISOString(),
-                    selectedFood: randomFood.name,
-                    category: section.label,
-                    restaurantCount: nearbyRestaurants.length
-                });
-            }, 1000);
-        }).catch(error => {
-            console.error("❌ Animation error:", error);
-            setIsSpinning(false);
-        });
-    }
+    // Add toggle function
+    const toggleDish = (index: number) => {
+        setExpandedDishes(prev => ({
+            ...prev,
+            [index]: !prev[index]
+        }));
+    };
 
     return (
         <div className="flex flex-col items-center gap-8 p-8">
@@ -263,7 +297,104 @@ export const FoodWheel = () => {
             )}
 
             <AnimatePresence>
-                {selectedFood && showOverlay && (
+                {selectedFood && !showOverlay && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="food-result-card w-full max-w-4xl"
+                    >
+                        <div className="category-badge">
+                            {selectedCategory}
+                        </div>
+                        <h4 className="text-xl font-medium mb-2">Recommended Dishes</h4>
+
+                        {/* API Recommended Dishes */}
+                        {weatherData?.recommendedDishes && weatherData.recommendedDishes.length > 0 ? (
+                            <div className="space-y-4">
+                                {weatherData.recommendedDishes.map((recommendation, index) => (
+                                    <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
+                                        <button
+                                            onClick={() => toggleDish(index)}
+                                            className="w-full px-6 py-4 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
+                                        >
+                                            <h4 className="text-xl font-medium text-left">{recommendation.dish}</h4>
+                                            {expandedDishes[index] ? (
+                                                <ChevronUpIcon className="h-5 w-5 text-gray-500" />
+                                            ) : (
+                                                <ChevronDownIcon className="h-5 w-5 text-gray-500" />
+                                            )}
+                                        </button>
+
+                                        <AnimatePresence>
+                                            {expandedDishes[index] && (
+                                                <motion.div
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: "auto", opacity: 1 }}
+                                                    exit={{ height: 0, opacity: 0 }}
+                                                    transition={{ duration: 0.2 }}
+                                                    className="overflow-hidden"
+                                                >
+                                                    <div className="p-6">
+                                                        <div className="mb-4">
+                                                            <h5 className="font-medium text-gray-700 mb-2">Nutrition Information:</h5>
+                                                            <ul className="list-disc list-inside space-y-1">
+                                                                {recommendation.nutrition.map((fact, i) => (
+                                                                    <li key={i} className="text-gray-600">{fact}</li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                        {recommendation.suggestedRestaurants && recommendation.suggestedRestaurants.length > 0 && (
+                                                            <div>
+                                                                <h5 className="font-medium text-gray-700 mb-2">Suggested Restaurants:</h5>
+                                                                <ul className="list-disc list-inside space-y-1">
+                                                                    {recommendation.suggestedRestaurants.map((restaurant, i) => (
+                                                                        <li key={i} className="text-gray-600">{restaurant}</li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            /* Fallback to original recommendation */
+                            <>
+                                <h3>{selectedFood.name}</h3>
+                                <p>{selectedFood.description}</p>
+                                <div className="health-rating">
+                                    <span>Health Rating:</span>
+                                    <div className="health-rating-dots">
+                                        {[...Array(5)].map((_, i) => (
+                                            <span
+                                                key={i}
+                                                className={`health-rating-dot ${i < selectedFood.healthRating ? 'active' : 'inactive'}`}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                                {selectedFood.culturalInfo && (
+                                    <p className="cultural-info">{selectedFood.culturalInfo}</p>
+                                )}
+                            </>
+                        )}
+
+                        <NearbyRestaurants
+                            cuisine={selectedFood?.cuisine || selectedCategory.toLowerCase()}
+                            prefetchedRestaurants={nearbyRestaurants}
+                            nextPageToken={nextPageToken}
+                            onNextPageTokenChange={setNextPageToken}
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {showOverlay && selectedCategory && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -275,7 +406,7 @@ export const FoodWheel = () => {
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
-                            className="w-full max-w-4xl bg-white/95 p-8 rounded-lg shadow-2xl mx-4 relative"
+                            className="w-full max-w-4xl bg-white/95 p-8 rounded-lg shadow-2xl mx-4 relative min-h-[400px]"
                             onClick={(e) => e.stopPropagation()}
                         >
                             <button
@@ -286,67 +417,57 @@ export const FoodWheel = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
-                            <div className="text-center">
-                                <h2 className="text-5xl font-bold mb-8 text-gray-800">{selectedCategory}</h2>
-                                <div className="recommendation-box bg-gray-50 p-6 rounded-lg mb-6">
-                                    <h3 className="text-3xl font-semibold mb-4 text-gray-700">Recommended Dish</h3>
-                                    <h4 className="text-2xl font-medium mb-3 text-gray-800">{selectedFood.name}</h4>
-                                    <p className="text-gray-600 text-lg mb-4">{selectedFood.description}</p>
-                                    <div className="health-rating flex items-center justify-center gap-2 mb-4">
-                                        <span className="text-gray-700 text-lg">Health Rating:</span>
-                                        <div className="health-rating-dots flex gap-1">
-                                            {[...Array(5)].map((_, i) => (
-                                                <span
-                                                    key={i}
-                                                    className={`health-rating-dot ${i < selectedFood.healthRating ? 'active' : 'inactive'}`}
-                                                />
-                                            ))}
-                                        </div>
+                            <div className="text-center space-y-6">
+                                <motion.h2
+                                    initial={{ y: 20, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ duration: 0.5 }}
+                                    className="text-5xl font-bold mb-8 text-gray-800"
+                                >
+                                    {selectedCategory}
+                                </motion.h2>
+
+                                {isLoadingWeatherData ? (
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        className="flex flex-col items-center justify-center space-y-4 min-h-[200px]"
+                                    >
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
+                                        <p className="text-gray-600">Loading weather information...</p>
+                                    </motion.div>
+                                ) : weatherData && (
+                                    <div className="space-y-6">
+                                        {showWeatherSection && weatherData.weather && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ duration: 0.5 }}
+                                                className="mb-6 p-4 bg-blue-50 rounded-lg transform-gpu"
+                                            >
+                                                <div className="flex items-center justify-center gap-2">
+                                                    {weatherData.weather.includes('overcast') ? (
+                                                        <CloudIcon className="h-6 w-6 text-gray-600" />
+                                                    ) : (
+                                                        <SunIcon className="h-6 w-6 text-yellow-500" />
+                                                    )}
+                                                    <span className="text-lg font-medium">{weatherData.weather}</span>
+                                                </div>
+                                            </motion.div>
+                                        )}
+
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.5, delay: 0.2 }}
+                                            className="mb-6 p-4 bg-yellow-50 rounded-lg transform-gpu"
+                                        >
+                                            <p className="text-lg italic text-gray-700">{weatherData.funFact}</p>
+                                        </motion.div>
                                     </div>
-                                    {selectedFood.culturalInfo && (
-                                        <p className="cultural-info italic text-gray-600 text-lg">{selectedFood.culturalInfo}</p>
-                                    )}
-                                </div>
+                                )}
                             </div>
                         </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            <AnimatePresence>
-                {selectedFood && !showOverlay && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className="food-result-card w-full max-w-4xl"
-                    >
-                        <div className="category-badge">
-                            {selectedCategory}
-                        </div>
-                        <h4 className="text-xl font-medium mb-2">Recommended Dish</h4>
-                        <h3>{selectedFood.name}</h3>
-                        <p>{selectedFood.description}</p>
-                        <div className="health-rating">
-                            <span>Health Rating:</span>
-                            <div className="health-rating-dots">
-                                {[...Array(5)].map((_, i) => (
-                                    <span
-                                        key={i}
-                                        className={`health-rating-dot ${i < selectedFood.healthRating ? 'active' : 'inactive'}`}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                        {selectedFood.culturalInfo && (
-                            <p className="cultural-info">{selectedFood.culturalInfo}</p>
-                        )}
-                        <NearbyRestaurants
-                            cuisine={selectedFood?.cuisine || selectedCategory.toLowerCase()}
-                            prefetchedRestaurants={nearbyRestaurants}
-                            nextPageToken={nextPageToken}
-                            onNextPageTokenChange={setNextPageToken}
-                        />
                     </motion.div>
                 )}
             </AnimatePresence>
