@@ -90,9 +90,8 @@
   display: flex;
   font-size: min(5cqi, 5vh);
   grid-area: 1 / -1;
-  rotate: calc(360deg / var(--_items) * calc(var(--_idx) - 1));
-  -webkit-transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1)));
   transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1)));
+  -webkit-transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1)));
   transform-origin: center right;
   -webkit-transform-origin: center right;
   user-select: none;
@@ -104,75 +103,100 @@
   justify-content: flex-start;
   align-items: center;
   padding-left: 10%;
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-  will-change: transform;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  perspective: 1000;
-  -webkit-perspective: 1000;
+  z-index: calc(var(--_items) - var(--_idx));
+  position: relative;
 }
 
 /* Food section colors */
 :where(.ui-wheel-of-fortune) ul li:nth-of-type(1) { 
   --_idx: 1; 
   background: #FF6B35; /* Hawker */
+  transform: rotate(0deg);
+  -webkit-transform: rotate(0deg);
 }
 :where(.ui-wheel-of-fortune) ul li:nth-of-type(2) { 
   --_idx: 2; 
   background: #4CAF50; /* Healthy */
+  transform: rotate(calc(360deg / var(--_items)));
+  -webkit-transform: rotate(calc(360deg / var(--_items)));
 }
 :where(.ui-wheel-of-fortune) ul li:nth-of-type(3) { 
   --_idx: 3; 
   background: #2196F3; /* Quick */
+  transform: rotate(calc(2 * 360deg / var(--_items)));
+  -webkit-transform: rotate(calc(2 * 360deg / var(--_items)));
 }
 :where(.ui-wheel-of-fortune) ul li:nth-of-type(4) { 
   --_idx: 4; 
   background: #9C27B0; /* Special */
+  transform: rotate(calc(3 * 360deg / var(--_items)));
+  -webkit-transform: rotate(calc(3 * 360deg / var(--_items)));
 }
 :where(.ui-wheel-of-fortune) ul li:nth-of-type(5) { 
   --_idx: 5; 
   background: #8BC34A; /* Veg */
+  transform: rotate(calc(4 * 360deg / var(--_items)));
+  -webkit-transform: rotate(calc(4 * 360deg / var(--_items)));
 }
 :where(.ui-wheel-of-fortune) ul li:nth-of-type(6) { 
   --_idx: 6; 
   background: #00BCD4; /* Halal */
+  transform: rotate(calc(5 * 360deg / var(--_items)));
+  -webkit-transform: rotate(calc(5 * 360deg / var(--_items)));
 }
 :where(.ui-wheel-of-fortune) ul li:nth-of-type(7) { 
   --_idx: 7; 
   background: #E91E63; /* Italian */
+  transform: rotate(calc(6 * 360deg / var(--_items)));
+  -webkit-transform: rotate(calc(6 * 360deg / var(--_items)));
 }
 :where(.ui-wheel-of-fortune) ul li:nth-of-type(8) { 
   --_idx: 8; 
   background: #FF9800; /* Mexican */
+  transform: rotate(calc(7 * 360deg / var(--_items)));
+  -webkit-transform: rotate(calc(7 * 360deg / var(--_items)));
 }
 :where(.ui-wheel-of-fortune) ul li:nth-of-type(9) { 
   --_idx: 9; 
   background: #FFC107; /* Spanish */
+  transform: rotate(calc(8 * 360deg / var(--_items)));
+  -webkit-transform: rotate(calc(8 * 360deg / var(--_items)));
 }
 :where(.ui-wheel-of-fortune) ul li:nth-of-type(10) { 
   --_idx: 10; 
   background: #795548; /* American */
+  transform: rotate(calc(9 * 360deg / var(--_items)));
+  -webkit-transform: rotate(calc(9 * 360deg / var(--_items)));
 }
 :where(.ui-wheel-of-fortune) ul li:nth-of-type(11) { 
   --_idx: 11; 
   background: #3F51B5; /* Korean */
+  transform: rotate(calc(10 * 360deg / var(--_items)));
+  -webkit-transform: rotate(calc(10 * 360deg / var(--_items)));
 }
 :where(.ui-wheel-of-fortune) ul li:nth-of-type(12) { 
   --_idx: 12; 
   background: #009688; /* Vietnamese */
+  transform: rotate(calc(11 * 360deg / var(--_items)));
+  -webkit-transform: rotate(calc(11 * 360deg / var(--_items)));
 }
 :where(.ui-wheel-of-fortune) ul li:nth-of-type(13) { 
   --_idx: 13; 
   background: #673AB7; /* French */
+  transform: rotate(calc(12 * 360deg / var(--_items)));
+  -webkit-transform: rotate(calc(12 * 360deg / var(--_items)));
 }
 :where(.ui-wheel-of-fortune) ul li:nth-of-type(14) { 
   --_idx: 14; 
   background: #CDDC39; /* Mediterranean */
+  transform: rotate(calc(13 * 360deg / var(--_items)));
+  -webkit-transform: rotate(calc(13 * 360deg / var(--_items)));
 }
 :where(.ui-wheel-of-fortune) ul li:nth-of-type(15) { 
   --_idx: 15; 
   background: #607D8B; /* Japanese */
+  transform: rotate(calc(14 * 360deg / var(--_items)));
+  -webkit-transform: rotate(calc(14 * 360deg / var(--_items)));
 }
 
 /* Color classes for each cuisine */
@@ -316,16 +340,13 @@
   }
 
   :where(.ui-wheel-of-fortune) ul li {
-    -webkit-clip-path: polygon(0% 0%, 100% 50%, 0% 100%);
-    clip-path: polygon(0% 0%, 100% 50%, 0% 100%);
-    transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1))) translateZ(0);
-    -webkit-transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1))) translateZ(0);
-    -webkit-transform-origin: center right;
-    transform-origin: center right;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    -webkit-transform-style: preserve-3d;
-    transform-style: preserve-3d;
+    /* Force GPU acceleration and prevent Safari from dropping segments */
+    transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1))) translate3d(0,0,0);
+    -webkit-transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1))) translate3d(0,0,0);
+    /* Ensure segments stay visible */
+    opacity: 1 !important;
+    /* Prevent Safari from optimizing away segments */
+    will-change: transform;
   }
 
   /* Fix button on iOS Safari */
