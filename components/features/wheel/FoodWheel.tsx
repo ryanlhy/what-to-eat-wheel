@@ -126,7 +126,6 @@ export const FoodWheel = () => {
         setSelectedCategory('');
         setDebugInfo('');
         setShowOverlay(false);
-        setNearbyRestaurants([]);
 
         const spins = 5 + Math.random() * 5;
         const randomAdditionalDegrees = spins * 360 + Math.random() * 360;
@@ -219,7 +218,8 @@ export const FoodWheel = () => {
                 console.log('🏁 Wheel spin completed:', {
                     timestamp: new Date().toISOString(),
                     selectedFood: randomFood.name,
-                    category: section.label
+                    category: section.label,
+                    restaurantCount: nearbyRestaurants.length
                 });
             }, 1000);
         }).catch(error => {

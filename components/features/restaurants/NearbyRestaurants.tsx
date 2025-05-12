@@ -430,7 +430,7 @@ export const NearbyRestaurants = ({
                 isLoading,
                 isLoadingMore
             });
-            setIsLoading(false); // Ensure loading is false when using prefetched data
+            setIsLoading(false);
             setRestaurants(prefetchedRestaurants);
             setDisplayedRestaurants(prefetchedRestaurants.slice(0, itemsPerPage));
             setShowLoadMore(prefetchedRestaurants.length > itemsPerPage || !!nextPageToken);
@@ -440,13 +440,15 @@ export const NearbyRestaurants = ({
             return;
         }
 
+        // Only proceed with search if we don't have prefetched data
         const searchRestaurants = async () => {
-            if (!isLoaded || !userLocation) return;
-
             // Skip if we've already searched with these exact parameters
-            if (!shouldFetchNewData(cuisine, userLocation)) {
+            // or if we have prefetched data
+            if (!shouldFetchNewData(cuisine, userLocation) || prefetchedRestaurants?.length) {
                 return;
             }
+
+            if (!isLoaded || !userLocation) return;
 
             setIsLoading(true);
             console.log('🔍 Starting restaurant search:', {
@@ -582,7 +584,7 @@ export const NearbyRestaurants = ({
             });
         };
 
-        if (userLocation) {
+        if (userLocation && !prefetchedRestaurants?.length) {
             searchRestaurants();
         }
     }, [isLoaded, userLocation, cuisine, prefetchedRestaurants, nextPageToken, convertToRestaurant, shouldFetchNewData, itemsPerPage, loadDummyRestaurants]);
