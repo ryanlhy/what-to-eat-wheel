@@ -293,56 +293,42 @@
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
     -webkit-perspective: 1000;
-    perspective: 1000;
     -webkit-transform-style: preserve-3d;
-    transform-style: preserve-3d;
+    will-change: transform;
   }
 
   :where(.ui-wheel-of-fortune) ul {
     -webkit-clip-path: inset(0 0 0 0 round 50%);
-    clip-path: inset(0 0 0 0 round 50%);
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
+    will-change: transform;
+    -webkit-transform-style: preserve-3d;
   }
 
   :where(.ui-wheel-of-fortune) ul li {
-    /* Override transforms for Safari iOS */
-    transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1))) translate3d(0,0,0) !important;
-    -webkit-transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1))) translate3d(0,0,0) !important;
-    opacity: 1 !important;
-    will-change: transform;
+    -webkit-clip-path: polygon(0% 0%, 100% 50%, 0% 100%);
+    -webkit-transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1))) translateZ(0);
+    transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1))) translateZ(0);
+    -webkit-transform-origin: center right;
+    transform-origin: center right;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
+    will-change: transform;
+    z-index: 1;
   }
 
-  /* Individual segment rotations for Safari */
-  :where(.ui-wheel-of-fortune) ul li:nth-of-type(1) { transform: rotate(0deg) translate3d(0,0,0) !important; -webkit-transform: rotate(0deg) translate3d(0,0,0) !important; }
-  :where(.ui-wheel-of-fortune) ul li:nth-of-type(2) { transform: rotate(calc(360deg / var(--_items))) translate3d(0,0,0) !important; -webkit-transform: rotate(calc(360deg / var(--_items))) translate3d(0,0,0) !important; }
-  :where(.ui-wheel-of-fortune) ul li:nth-of-type(3) { transform: rotate(calc(2 * 360deg / var(--_items))) translate3d(0,0,0) !important; -webkit-transform: rotate(calc(2 * 360deg / var(--_items))) translate3d(0,0,0) !important; }
-  :where(.ui-wheel-of-fortune) ul li:nth-of-type(4) { transform: rotate(calc(3 * 360deg / var(--_items))) translate3d(0,0,0) !important; -webkit-transform: rotate(calc(3 * 360deg / var(--_items))) translate3d(0,0,0) !important; }
-  :where(.ui-wheel-of-fortune) ul li:nth-of-type(5) { transform: rotate(calc(4 * 360deg / var(--_items))) translate3d(0,0,0) !important; -webkit-transform: rotate(calc(4 * 360deg / var(--_items))) translate3d(0,0,0) !important; }
-  :where(.ui-wheel-of-fortune) ul li:nth-of-type(6) { transform: rotate(calc(5 * 360deg / var(--_items))) translate3d(0,0,0) !important; -webkit-transform: rotate(calc(5 * 360deg / var(--_items))) translate3d(0,0,0) !important; }
-  :where(.ui-wheel-of-fortune) ul li:nth-of-type(7) { transform: rotate(calc(6 * 360deg / var(--_items))) translate3d(0,0,0) !important; -webkit-transform: rotate(calc(6 * 360deg / var(--_items))) translate3d(0,0,0) !important; }
-  :where(.ui-wheel-of-fortune) ul li:nth-of-type(8) { transform: rotate(calc(7 * 360deg / var(--_items))) translate3d(0,0,0) !important; -webkit-transform: rotate(calc(7 * 360deg / var(--_items))) translate3d(0,0,0) !important; }
-  :where(.ui-wheel-of-fortune) ul li:nth-of-type(9) { transform: rotate(calc(8 * 360deg / var(--_items))) translate3d(0,0,0) !important; -webkit-transform: rotate(calc(8 * 360deg / var(--_items))) translate3d(0,0,0) !important; }
-  :where(.ui-wheel-of-fortune) ul li:nth-of-type(10) { transform: rotate(calc(9 * 360deg / var(--_items))) translate3d(0,0,0) !important; -webkit-transform: rotate(calc(9 * 360deg / var(--_items))) translate3d(0,0,0) !important; }
-  :where(.ui-wheel-of-fortune) ul li:nth-of-type(11) { transform: rotate(calc(10 * 360deg / var(--_items))) translate3d(0,0,0) !important; -webkit-transform: rotate(calc(10 * 360deg / var(--_items))) translate3d(0,0,0) !important; }
-  :where(.ui-wheel-of-fortune) ul li:nth-of-type(12) { transform: rotate(calc(11 * 360deg / var(--_items))) translate3d(0,0,0) !important; -webkit-transform: rotate(calc(11 * 360deg / var(--_items))) translate3d(0,0,0) !important; }
-  :where(.ui-wheel-of-fortune) ul li:nth-of-type(13) { transform: rotate(calc(12 * 360deg / var(--_items))) translate3d(0,0,0) !important; -webkit-transform: rotate(calc(12 * 360deg / var(--_items))) translate3d(0,0,0) !important; }
-  :where(.ui-wheel-of-fortune) ul li:nth-of-type(14) { transform: rotate(calc(13 * 360deg / var(--_items))) translate3d(0,0,0) !important; -webkit-transform: rotate(calc(13 * 360deg / var(--_items))) translate3d(0,0,0) !important; }
-  :where(.ui-wheel-of-fortune) ul li:nth-of-type(15) { transform: rotate(calc(14 * 360deg / var(--_items))) translate3d(0,0,0) !important; -webkit-transform: rotate(calc(14 * 360deg / var(--_items))) translate3d(0,0,0) !important; }
+  /* Fix button on iOS Safari */
+  :where(.ui-wheel-of-fortune) button {
+    -webkit-transform: translateZ(0);
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
-/* Fix for iPhone Safari rotation issues */
+/* Remove the old iPhone Safari rotation fix since we've integrated it above */
 @media not all and (min-resolution:.001dpcm) { 
   @supports (-webkit-appearance:none) {
     :where(.ui-wheel-of-fortune) ul li {
       transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1))) translateZ(0);
-      -webkit-transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1))) translateZ(0);
-      -webkit-backface-visibility: hidden;
-      backface-visibility: hidden;
-      -webkit-transform-style: preserve-3d;
-      transform-style: preserve-3d;
     }
   }
 } 
