@@ -26,13 +26,13 @@ export const FoodWheel = () => {
     const [nextPageToken, setNextPageToken] = useState<string | undefined>(undefined)
     const [showWeightControls, setShowWeightControls] = useState(false)
     const [sectionWeights, setSectionWeights] = useState<Record<string, number>>(() =>
-        // Initialize with default weights
+        // Initialize with default weights (these won't affect the actual selection)
         Object.fromEntries(FOOD_SECTIONS.map(section => [section.category, 1]))
     )
     const wheelRef = useRef<HTMLUListElement>(null)
     const previousEndDegree = useRef(0)
 
-    // Load saved weights from localStorage on client side only
+    // Load saved weights from localStorage on client side only (for UI persistence only)
     useEffect(() => {
         const loadSavedWeights = () => {
             try {
@@ -92,30 +92,27 @@ export const FoodWheel = () => {
         }
     }, []);
 
-    const getWeightedRandomSection = () => {
-        // Create an array where each section appears multiple times based on its weight
-        const weightedSections = FOOD_SECTIONS.flatMap(section =>
-            Array(sectionWeights[section.category]).fill(section)
-        );
+    const getSelectedSection = (rotation: number) => {
+        const sectionAngle = 360 / FOOD_SECTIONS.length
 
-        return weightedSections[Math.floor(Math.random() * weightedSections.length)];
-    };
+        // 1. Normalize the rotation to 0-360
+        let normalizedRotation = (rotation % 360 + 360) % 360
 
-    const handleWeightChange = (category: string, weight: number) => {
-        setSectionWeights(prev => {
-            const newWeights = {
-                ...prev,
-                [category]: weight
-            };
-            try {
-                // Save to localStorage only on client side
-                localStorage.setItem('foodWheelWeights', JSON.stringify(newWeights));
-            } catch (e) {
-                console.error('Error saving weights:', e);
-            }
-            return newWeights;
-        });
-    };
+        // 2. Reverse the direction since our wheel rotates clockwise
+        // but sections are numbered counting clockwise from the top
+        normalizedRotation = (360 - normalizedRotation) % 360
+
+        // 3. Account for the offset between the pointer (at top) and section alignment
+        // sectionAngle / 2 aligns with center of section
+        // sectionAngle * (sectionsCount / 4) provides dynamic adjustment based on number of sections
+        const sectionOffset = sectionAngle / 2 + sectionAngle * (FOOD_SECTIONS.length / 4)
+        normalizedRotation = (normalizedRotation + sectionOffset) % 360
+
+        // 4. Calculate index based on the adjusted rotation
+        const index = Math.floor(normalizedRotation / sectionAngle)
+
+        return index
+    }
 
     const spinWheel = async () => {
         if (isSpinning || !wheelRef.current) return;
@@ -131,30 +128,19 @@ export const FoodWheel = () => {
         setShowOverlay(false);
         setNearbyRestaurants([]);
 
-        // Get weighted random section
-        const selectedSection = getWeightedRandomSection();
-
-        // Calculate the target rotation to land on this section
-        const sectionIndex = FOOD_SECTIONS.findIndex(s => s.category === selectedSection.category);
-        const sectionAngle = 360 / FOOD_SECTIONS.length;
-
-        // Add extra spins (5-10 full rotations) plus the target rotation
         const spins = 5 + Math.random() * 5;
-        const baseRotation = sectionIndex * sectionAngle;
-        // Adjust the rotation to account for the wheel's orientation and pointer position
-        const adjustedRotation = (360 - baseRotation + sectionAngle * (FOOD_SECTIONS.length / 4)) % 360;
-        const totalRotation = (spins * 360) + adjustedRotation;
+        const randomAdditionalDegrees = spins * 360 + Math.random() * 360;
+        const newEndDegree = previousEndDegree.current + randomAdditionalDegrees;
 
         console.log('🎲 Wheel spin details:', {
             spins,
-            totalDegrees: totalRotation,
-            finalDegree: totalRotation,
-            selectedSection: selectedSection.label
+            totalDegrees: randomAdditionalDegrees,
+            finalDegree: newEndDegree
         });
 
         const animation = wheelRef.current.animate([
             { transform: `rotate(${previousEndDegree.current}deg)` },
-            { transform: `rotate(${totalRotation}deg)` }
+            { transform: `rotate(${newEndDegree}deg)` }
         ], {
             duration: 7000,
             easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
@@ -162,20 +148,31 @@ export const FoodWheel = () => {
             iterations: 1
         });
 
-        previousEndDegree.current = totalRotation;
+        previousEndDegree.current = newEndDegree;
+
+        // Calculate the selected section while the wheel is spinning
+        const finalRotation = newEndDegree % 360;
+        const selectedIndex = getSelectedSection(finalRotation);
+        const section = FOOD_SECTIONS[selectedIndex];
+
+        console.log('🎯 Selected section:', {
+            timestamp: new Date().toISOString(),
+            section: section.label,
+            index: selectedIndex
+        });
 
         // Start searching for restaurants if we have user location
         if (userLocation) {
             console.log('🔄 Starting restaurant search during wheel spin:', {
                 timestamp: new Date().toISOString(),
-                cuisine: selectedSection.label,
+                cuisine: section.label,
                 location: userLocation
             });
 
             setIsLoadingRestaurants(true);
             try {
                 const result = await searchRestaurantsByCuisine(
-                    selectedSection.label,
+                    section.label,
                     userLocation,
                     process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!
                 );
@@ -201,30 +198,35 @@ export const FoodWheel = () => {
             });
 
             setTimeout(() => {
-                const randomFood = selectedSection.items[Math.floor(Math.random() * selectedSection.items.length)];
+                const randomFood = section.items[Math.floor(Math.random() * section.items.length)];
 
                 if (DEBUG_MODE) {
-                    const debug = `Selected Section: ${selectedSection.label}, Final Rotation: ${totalRotation.toFixed(1)}°, Section Index: ${sectionIndex}`;
+                    const normalizedRotation = (finalRotation % 360 + 360) % 360;
+                    const reversedRotation = (360 - normalizedRotation) % 360;
+                    const sectionAngle = 360 / FOOD_SECTIONS.length;
+                    const offset = sectionAngle / 2 + sectionAngle;
+                    const withOffset = (reversedRotation + offset) % 360;
+                    const debug = `Final Rotation: ${finalRotation.toFixed(1)}°, Normalized: ${normalizedRotation.toFixed(1)}°, Reversed: ${reversedRotation.toFixed(1)}°, With Offset: ${withOffset.toFixed(1)}°, Section Angle: ${sectionAngle}°, Index: ${selectedIndex}, Section: ${section.label}`;
                     setDebugInfo(debug);
                     console.log('🔍 Debug info:', debug);
                 }
 
                 setSelectedFood(randomFood);
-                setSelectedCategory(selectedSection.label);
+                setSelectedCategory(section.label);
                 setShowOverlay(true);
                 setIsSpinning(false);
 
                 console.log('🏁 Wheel spin completed:', {
                     timestamp: new Date().toISOString(),
                     selectedFood: randomFood.name,
-                    category: selectedSection.label
+                    category: section.label
                 });
             }, 1000);
         }).catch(error => {
             console.error("❌ Animation error:", error);
             setIsSpinning(false);
         });
-    };
+    }
 
     return (
         <div className="flex flex-col items-center gap-8 p-8">
