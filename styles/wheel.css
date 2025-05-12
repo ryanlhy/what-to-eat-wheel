@@ -107,6 +107,10 @@
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   will-change: transform;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  perspective: 1000;
+  -webkit-perspective: 1000;
 }
 
 /* Food section colors */
@@ -293,22 +297,35 @@
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
     -webkit-perspective: 1000;
+    perspective: 1000;
     -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
   }
 
   :where(.ui-wheel-of-fortune) ul {
     -webkit-clip-path: inset(0 0 0 0 round 50%);
+    clip-path: inset(0 0 0 0 round 50%);
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
   }
 
   :where(.ui-wheel-of-fortune) ul li {
     -webkit-clip-path: polygon(0% 0%, 100% 50%, 0% 100%);
-    /* iOS Safari doesn't fully support the rotate property */
-    -webkit-transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1)));
-    transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1)));
+    clip-path: polygon(0% 0%, 100% 50%, 0% 100%);
+    transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1))) translateZ(0);
+    -webkit-transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1))) translateZ(0);
     -webkit-transform-origin: center right;
+    transform-origin: center right;
     -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
   }
 
   /* Fix button on iOS Safari */
@@ -323,6 +340,11 @@
   @supports (-webkit-appearance:none) {
     :where(.ui-wheel-of-fortune) ul li {
       transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1))) translateZ(0);
+      -webkit-transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1))) translateZ(0);
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      -webkit-transform-style: preserve-3d;
+      transform-style: preserve-3d;
     }
   }
 } 
