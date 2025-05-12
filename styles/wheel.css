@@ -286,34 +286,43 @@
 
 /* iOS Safari specific fixes */
 @supports (-webkit-touch-callout: none) {
-  :where(.ui-wheel-of-fortune) ul li {
-    rotate: none;
-    transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1)));
-    -webkit-transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1)));
-    transform-style: flat;
-    -webkit-transform-style: flat;
-    -webkit-backface-visibility: visible;
-    backface-visibility: visible;
-    position: absolute;
-    /* Ensure the triangular shape is maintained */
-    -webkit-mask-image: -webkit-linear-gradient(transparent 0%, black 0%);
+  /* Target iOS devices */
+  :where(.ui-wheel-of-fortune) {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    -webkit-perspective: 1000;
+    -webkit-transform-style: preserve-3d;
+    will-change: transform;
   }
 
   :where(.ui-wheel-of-fortune) ul {
+    -webkit-clip-path: inset(0 0 0 0 round 50%);
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
+    -webkit-transform-style: preserve-3d;
+  }
+
+  :where(.ui-wheel-of-fortune) ul li {
+    rotate: none;  /* Remove rotate property for Safari */
+    transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1))) translateZ(0) !important;
+    -webkit-transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1))) translateZ(0) !important;
     transform-style: flat;
     -webkit-transform-style: flat;
-    -webkit-backface-visibility: visible;
-    backface-visibility: visible;
-    position: relative;
-    overflow: hidden;
+  }
+
+  /* Fix button on iOS Safari */
+  :where(.ui-wheel-of-fortune) button {
+    -webkit-transform: translateZ(0);
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
-/* Remove the media query fix since we're handling it differently now */
+/* Remove the old iPhone Safari rotation fix since we've integrated it above */
 @media not all and (min-resolution:.001dpcm) { 
   @supports (-webkit-appearance:none) {
     :where(.ui-wheel-of-fortune) ul li {
-      transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1)));
+      transform: rotate(calc(360deg / var(--_items) * calc(var(--_idx) - 1))) translateZ(0);
     }
   }
 } 
