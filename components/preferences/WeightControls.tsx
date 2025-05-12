@@ -26,7 +26,7 @@ export const WeightControls = ({ weights, onWeightChange }: WeightControlsProps)
                         <div className={`w-2.5 md:w-3 h-2.5 md:h-3 rounded-full bg-${section.category} shrink-0`} />
                         <button
                             onClick={() => handleWeightChange(section.category, false)}
-                            className="p-1 rounded-full hover:bg-gray-200 transition-colors disabled:opacity-30 weight-control-button shrink-0"
+                            className="p-3 md:p-3 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-30 weight-control-button shrink-0"
                             disabled={weights[section.category] <= 1}
                         >
                             <MinusIcon className="w-3.5 md:w-4 h-3.5 md:h-4" />
@@ -43,7 +43,7 @@ export const WeightControls = ({ weights, onWeightChange }: WeightControlsProps)
                         </button>
                         <button
                             onClick={() => handleWeightChange(section.category, true)}
-                            className="p-1 rounded-full hover:bg-gray-200 transition-colors disabled:opacity-30 weight-control-button shrink-0"
+                            className="p-3 md:p-3 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-30 weight-control-button shrink-0"
                             disabled={weights[section.category] >= 5}
                         >
                             <PlusIcon className="w-3.5 md:w-4 h-3.5 md:h-4" />
