@@ -14,6 +14,7 @@ import { AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline'
 import { CloudIcon, SunIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline'
 import { DEFAULT_LOCATION, Location } from '@/lib/constants/config'
 import { FALLBACK_FUN_FACTS } from '@/lib/constants/foodData'
+import { DEFAULT_TIMEOUT_API_FUNFACTS } from '@/lib/constants/config'
 
 const DEBUG_MODE = process.env.NEXT_PUBLIC_DEBUG_MODE === 'true'
 
@@ -189,7 +190,7 @@ export const FoodWheel = () => {
                     })
                 });
 
-                const response = await fetchWithTimeout(fetchPromise, 11000); // 3 second timeout
+                const response = await fetchWithTimeout(fetchPromise, DEFAULT_TIMEOUT_API_FUNFACTS); // 3 second timeout
 
                 if (!response.ok) {
                     throw new Error(`API responded with status: ${response.status}`);

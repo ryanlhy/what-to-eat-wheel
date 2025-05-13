@@ -13,3 +13,6 @@ export interface Location {
     lat: number;
     lng: number;
 } 
+
+// default timeout for API calls
+export const DEFAULT_TIMEOUT_API_FUNFACTS = 15000; // 15 seconds
