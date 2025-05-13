@@ -6,7 +6,7 @@ interface RestaurantModalProps {
 }
 
 const getPriceLevel = (level?: number) => {
-    if (!level) return '';
+    if (!level) return '$';
     return '$'.repeat(level);
 };
 
@@ -28,6 +28,23 @@ export const RestaurantModal = ({ restaurant, onClose }: RestaurantModalProps) =
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+                <button
+                    onClick={() => {
+                        if (navigator.share) {
+                            navigator.share({
+                                title: restaurant.name,
+                                text: `Check out ${restaurant.name} at ${restaurant.vicinity}`,
+                                url: `https://www.google.com/maps/place/?q=place_id:${restaurant.place_id}`
+                            }).catch(console.error);
+                        }
+                    }}
+                    className="absolute top-4 right-16 text-gray-500 hover:text-gray-700 bg-white/80 rounded-full p-2"
+                    title="Share Location"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                     </svg>
                 </button>
                 <h2 className="text-2xl font-bold mb-2">{restaurant.name}</h2>
