@@ -19,6 +19,9 @@ const Navbar = () => {
                             <Link href="/instructions" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                                 Instructions
                             </Link>
+                            <Link href="/tech" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                Tech Stack
+                            </Link>
                             <Link href="/about" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                                 About
                             </Link>
@@ -57,6 +60,13 @@ const Navbar = () => {
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
                                 Instructions
+                            </Link>
+                            <Link
+                                href="/tech"
+                                className="text-gray-600 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-colors"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                                Tech Stack
                             </Link>
                             <Link
                                 href="/about"
