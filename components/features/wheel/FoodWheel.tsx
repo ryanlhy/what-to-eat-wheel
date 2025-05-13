@@ -288,7 +288,7 @@ export const FoodWheel = () => {
                 className="flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-colors weight-control-button w-full max-w-[280px] sm:max-w-[320px]"
             >
                 <AdjustmentsHorizontalIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="text-sm sm:text-base">Adjust Weights</span>
+                <span className="text-sm sm:text-base">Preferences</span>
             </button>
 
             {DEBUG_MODE && debugInfo && (
