@@ -17,6 +17,295 @@ export const FALLBACK_FUN_FACTS: Record<string, string> = {
     healthy: "Fun fact: The concept of 'superfoods' gained popularity in the early 2000s, highlighting nutrient-rich foods that promote health and wellbeing."
 } as const;
 
+export const FALLBACK_RECOMMENDED_DISHES: Record<string, Array<{dish: string; nutrition: string[]; suggestedRestaurants: string[]}>> = {
+    japanese: [
+        {
+            dish: "Miso Ramen",
+            nutrition: [
+                "Rich in protein from the pork and egg",
+                "Contains probiotics from fermented miso",
+                "Good source of minerals from seaweed",
+                "High in sodium - consume in moderation"
+            ],
+            suggestedRestaurants: ["Ippudo", "Ramen Keisuke", "Marutama Ra-men"]
+        },
+        {
+            dish: "Chirashi Don",
+            nutrition: [
+                "High in omega-3 fatty acids from fresh fish",
+                "Good source of protein",
+                "Rich in vitamins A and D",
+                "Contains healthy carbohydrates from rice"
+            ],
+            suggestedRestaurants: ["Sushi Tei", "Teppei Japanese Restaurant", "Standing Sushi Bar"]
+        }
+    ],
+    chinese: [
+        {
+            dish: "Steamed Fish with Ginger and Scallion",
+            nutrition: [
+                "High in lean protein",
+                "Rich in omega-3 fatty acids",
+                "Low in calories",
+                "Good source of vitamins and minerals"
+            ],
+            suggestedRestaurants: ["Paradise Dynasty", "Crystal Jade", "Imperial Treasure"]
+        },
+        {
+            dish: "Mapo Tofu",
+            nutrition: [
+                "High in plant-based protein",
+                "Good source of iron",
+                "Contains healthy fats",
+                "Rich in calcium from tofu"
+            ],
+            suggestedRestaurants: ["Si Chuan Dou Hua", "Shisen Hanten", "Chen's Mapo Tofu"]
+        }
+    ],
+    korean: [
+        {
+            dish: "Sundubu Jjigae",
+            nutrition: [
+                "High in protein from tofu and seafood",
+                "Rich in vitamins and minerals",
+                "Contains healthy fats",
+                "Good source of iron"
+            ],
+            suggestedRestaurants: ["Seoul Garden", "Kim's Family Restaurant", "Hanwoori Korean Restaurant"]
+        },
+        {
+            dish: "Bibimbap",
+            nutrition: [
+                "Balanced mix of proteins and vegetables",
+                "Rich in fiber",
+                "Good source of vitamins and minerals",
+                "Contains healthy carbohydrates"
+            ],
+            suggestedRestaurants: ["Seoul Garden", "Kimchi Korean Restaurant", "Hansang Korean Restaurant"]
+        }
+    ],
+    thai: [
+        {
+            dish: "Green Curry",
+            nutrition: [
+                "Contains anti-inflammatory ingredients",
+                "Rich in vitamins and minerals",
+                "Good source of protein",
+                "Contains healthy fats from coconut milk"
+            ],
+            suggestedRestaurants: ["Thai Express", "Nakhon Kitchen", "Soi Thai Kitchen"]
+        },
+        {
+            dish: "Som Tam",
+            nutrition: [
+                "Low in calories",
+                "High in fiber",
+                "Rich in vitamins A and C",
+                "Good source of plant-based nutrients"
+            ],
+            suggestedRestaurants: ["Nakhon Kitchen", "Soi Thai Kitchen", "Thai Gold Food"]
+        }
+    ],
+    indian: [
+        {
+            dish: "Dal Makhani",
+            nutrition: [
+                "High in plant-based protein",
+                "Rich in fiber",
+                "Good source of iron",
+                "Contains healthy fats"
+            ],
+            suggestedRestaurants: ["Muthu's Curry", "Banana Leaf Apolo", "Komala Vilas"]
+        },
+        {
+            dish: "Tandoori Chicken",
+            nutrition: [
+                "High in lean protein",
+                "Low in carbohydrates",
+                "Good source of vitamins B6 and B12",
+                "Contains healthy spices"
+            ],
+            suggestedRestaurants: ["Muthu's Curry", "Banana Leaf Apolo", "Delhi Restaurant"]
+        }
+    ],
+    mediterranean: [
+        {
+            dish: "Grilled Sea Bass",
+            nutrition: [
+                "High in lean protein",
+                "Rich in omega-3 fatty acids",
+                "Good source of vitamins D and B12",
+                "Low in saturated fat"
+            ],
+            suggestedRestaurants: ["Alati", "Bakalaki Greek Taverna", "PITA"]
+        },
+        {
+            dish: "Mediterranean Mezze Platter",
+            nutrition: [
+                "Rich in healthy fats from olive oil",
+                "Good source of plant-based protein",
+                "High in fiber",
+                "Contains various vitamins and minerals"
+            ],
+            suggestedRestaurants: ["Alati", "Bakalaki Greek Taverna", "Fat Prince"]
+        }
+    ],
+    french: [
+        {
+            dish: "Ratatouille",
+            nutrition: [
+                "Low in calories",
+                "High in fiber",
+                "Rich in vitamins and minerals",
+                "Good source of antioxidants"
+            ],
+            suggestedRestaurants: ["Les Amis", "L'Angelus", "Bistrot du Sommelier"]
+        },
+        {
+            dish: "Bouillabaisse",
+            nutrition: [
+                "High in protein from seafood",
+                "Rich in omega-3 fatty acids",
+                "Good source of vitamins and minerals",
+                "Contains healthy herbs and spices"
+            ],
+            suggestedRestaurants: ["Les Amis", "L'Angelus", "La Brasserie"]
+        }
+    ],
+    mexican: [
+        {
+            dish: "Fish Tacos",
+            nutrition: [
+                "High in lean protein",
+                "Contains healthy fats",
+                "Good source of fiber",
+                "Rich in vitamins and minerals"
+            ],
+            suggestedRestaurants: ["Muchachos", "Papi's Tacos", "Super Loco"]
+        },
+        {
+            dish: "Chicken Fajitas",
+            nutrition: [
+                "High in protein",
+                "Rich in vegetables",
+                "Good source of vitamins and minerals",
+                "Contains healthy fats"
+            ],
+            suggestedRestaurants: ["Muchachos", "Papi's Tacos", "Cafe Iguana"]
+        }
+    ],
+    vietnamese: [
+        {
+            dish: "Bun Bo Hue",
+            nutrition: [
+                "Rich in protein",
+                "Contains various herbs and spices",
+                "Good source of iron",
+                "Contains healthy carbohydrates"
+            ],
+            suggestedRestaurants: ["Mrs Pho", "Long Phung", "Little Vietnam"]
+        },
+        {
+            dish: "Goi Cuon",
+            nutrition: [
+                "Low in calories",
+                "High in fiber",
+                "Rich in vitamins and minerals",
+                "Contains lean protein"
+            ],
+            suggestedRestaurants: ["Mrs Pho", "Long Phung", "Little Vietnam"]
+        }
+    ],
+    spanish: [
+        {
+            dish: "Seafood Paella",
+            nutrition: [
+                "Rich in protein from seafood",
+                "Good source of saffron antioxidants",
+                "Contains healthy carbohydrates",
+                "Rich in vitamins and minerals"
+            ],
+            suggestedRestaurants: ["FOC Restaurant", "La Taperia", "My Little Spanish Place"]
+        },
+        {
+            dish: "Gazpacho",
+            nutrition: [
+                "Low in calories",
+                "High in vitamins A and C",
+                "Rich in antioxidants",
+                "Good source of fiber"
+            ],
+            suggestedRestaurants: ["FOC Restaurant", "La Taperia", "My Little Spanish Place"]
+        }
+    ],
+    american: [
+        {
+            dish: "Grilled Salmon Burger",
+            nutrition: [
+                "High in omega-3 fatty acids",
+                "Good source of protein",
+                "Rich in vitamins D and B12",
+                "Contains healthy fats"
+            ],
+            suggestedRestaurants: ["OverEasy", "25 Degrees", "Three Buns"]
+        },
+        {
+            dish: "Quinoa Bowl",
+            nutrition: [
+                "High in plant-based protein",
+                "Rich in fiber",
+                "Good source of iron",
+                "Contains all essential amino acids"
+            ],
+            suggestedRestaurants: ["The Daily Cut", "SaladStop!", "GRAIN"]
+        }
+    ],
+    hawker: [
+        {
+            dish: "Sliced Fish Soup",
+            nutrition: [
+                "High in lean protein",
+                "Low in calories",
+                "Good source of omega-3",
+                "Rich in minerals"
+            ],
+            suggestedRestaurants: ["Han Kee Fish Soup", "Ka-Soh Restaurant", "Blanco Court Fish Soup"]
+        },
+        {
+            dish: "Thunder Tea Rice",
+            nutrition: [
+                "High in fiber",
+                "Rich in antioxidants",
+                "Good source of vitamins",
+                "Contains healthy herbs"
+            ],
+            suggestedRestaurants: ["Thunder Tea Rice", "Living Wholesome", "Ah Lock & Co."]
+        }
+    ],
+    healthy: [
+        {
+            dish: "Buddha Bowl",
+            nutrition: [
+                "Balanced mix of proteins and vegetables",
+                "High in fiber",
+                "Rich in vitamins and minerals",
+                "Contains healthy fats"
+            ],
+            suggestedRestaurants: ["The Daily Cut", "SaladStop!", "GRAIN"]
+        },
+        {
+            dish: "Poke Bowl",
+            nutrition: [
+                "High in protein",
+                "Rich in omega-3 fatty acids",
+                "Good source of fiber",
+                "Contains various vitamins and minerals"
+            ],
+            suggestedRestaurants: ["Poke Theory", "A Poke Theory", "Alakai Poke"]
+        }
+    ]
+}
+
 export const FOOD_SECTIONS: WheelSection[] = [
   {
     category: 'japanese',

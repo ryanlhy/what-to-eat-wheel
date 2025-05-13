@@ -349,6 +349,145 @@ export const DUMMY_RESTAURANTS: Restaurant[] = [
         lng: 103.8319106
       }
     }
+  },
+  {
+    id: '11',
+    name: 'Tapas Barcelona',
+    description: 'Authentic Spanish tapas bar with an extensive wine selection.',
+    imageUrl: 'https://images.unsplash.com/photo-1515443961218-a51367888e4b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+    rating: 4.6,
+    priceRange: '$$',
+    cuisine: 'Spanish',
+    location: 'Duxton Hill',
+    openingHours: '12:00 PM - 11:00 PM',
+    contact: '+65 8234 5678',
+    website: 'https://www.tapasbarcelona.com',
+    place_id: 'place_id_11',
+    vicinity: '34 Duxton Hill, Duxton',
+    types: ['restaurant', 'bar', 'food', 'spanish'],
+    price_level: 2,
+    opening_hours: {
+      open_now: true,
+      weekday_text: [
+        'Monday: 12:00 PM – 11:00 PM',
+        'Tuesday: 12:00 PM – 11:00 PM',
+        'Wednesday: 12:00 PM – 11:00 PM',
+        'Thursday: 12:00 PM – 11:00 PM',
+        'Friday: 12:00 PM – 12:00 AM',
+        'Saturday: 12:00 PM – 12:00 AM',
+        'Sunday: 12:00 PM – 10:00 PM'
+      ]
+    },
+    geometry: {
+      location: {
+        lat: 1.2793,
+        lng: 103.8439
+      }
+    }
+  },
+  {
+    id: '12',
+    name: 'Olive & Feta',
+    description: 'Mediterranean restaurant specializing in Greek and Middle Eastern cuisine.',
+    imageUrl: 'https://images.unsplash.com/photo-1523986371872-9d3ba2e2a389?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+    rating: 4.5,
+    priceRange: '$$',
+    cuisine: 'Mediterranean',
+    location: 'Telok Ayer',
+    openingHours: '11:30 AM - 10:00 PM',
+    contact: '+65 9345 6789',
+    website: 'https://www.oliveandfeta.com',
+    place_id: 'place_id_12',
+    vicinity: '45 Telok Ayer Street, Telok Ayer',
+    types: ['restaurant', 'food', 'mediterranean', 'greek'],
+    price_level: 2,
+    opening_hours: {
+      open_now: true,
+      weekday_text: [
+        'Monday: 11:30 AM – 10:00 PM',
+        'Tuesday: 11:30 AM – 10:00 PM',
+        'Wednesday: 11:30 AM – 10:00 PM',
+        'Thursday: 11:30 AM – 10:00 PM',
+        'Friday: 11:30 AM – 11:00 PM',
+        'Saturday: 11:30 AM – 11:00 PM',
+        'Sunday: 12:00 PM – 9:00 PM'
+      ]
+    },
+    geometry: {
+      location: {
+        lat: 1.2803,
+        lng: 103.8482
+      }
+    }
+  },
+  {
+    id: '13',
+    name: 'Maxwell Food Centre',
+    description: 'Popular hawker centre featuring local Singaporean delicacies.',
+    imageUrl: 'https://images.unsplash.com/photo-1569288063643-5d5369c4e381?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+    rating: 4.4,
+    priceRange: '$',
+    cuisine: 'Hawker',
+    location: 'Chinatown',
+    openingHours: '8:00 AM - 10:00 PM',
+    contact: '+65 6225 5632',
+    place_id: 'place_id_13',
+    vicinity: '1 Kadayanallur Street, Chinatown',
+    types: ['food_court', 'hawker_centre', 'food', 'local'],
+    price_level: 1,
+    opening_hours: {
+      open_now: true,
+      weekday_text: [
+        'Monday: 8:00 AM – 10:00 PM',
+        'Tuesday: 8:00 AM – 10:00 PM',
+        'Wednesday: 8:00 AM – 10:00 PM',
+        'Thursday: 8:00 AM – 10:00 PM',
+        'Friday: 8:00 AM – 10:00 PM',
+        'Saturday: 8:00 AM – 10:00 PM',
+        'Sunday: 8:00 AM – 10:00 PM'
+      ]
+    },
+    geometry: {
+      location: {
+        lat: 1.2801,
+        lng: 103.8452
+      }
+    }
+  },
+  {
+    id: '14',
+    name: 'Green & Lean',
+    description: 'Modern health food restaurant offering salads, grain bowls, and smoothies.',
+    imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+    rating: 4.3,
+    priceRange: '$$',
+    cuisine: 'Healthy',
+    location: 'CBD',
+    openingHours: '8:00 AM - 8:00 PM',
+    contact: '+65 9456 7890',
+    website: 'https://www.greenandlean.com',
+    place_id: 'place_id_14',
+    vicinity: '12 Marina View, CBD',
+    types: ['restaurant', 'food', 'healthy', 'salad'],
+    price_level: 2,
+    opening_hours: {
+      open_now: true,
+      weekday_text: [
+        'Monday: 8:00 AM – 8:00 PM',
+        'Tuesday: 8:00 AM – 8:00 PM',
+        'Wednesday: 8:00 AM – 8:00 PM',
+        'Thursday: 8:00 AM – 8:00 PM',
+        'Friday: 8:00 AM – 8:00 PM',
+        'Saturday: 9:00 AM – 4:00 PM',
+        'Sunday: Closed'
+      ]
+    },
+    geometry: {
+      location: {
+        lat: 1.2821,
+        lng: 103.8516
+      }
+    }
   }
 ];
 

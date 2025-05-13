@@ -13,7 +13,7 @@ import { Modal } from '@/components/preferences/PreferencesModal'
 import { AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline'
 import { CloudIcon, SunIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline'
 import { DEFAULT_LOCATION, Location } from '@/lib/constants/config'
-import { FALLBACK_FUN_FACTS } from '@/lib/constants/foodData'
+import { FALLBACK_FUN_FACTS, FALLBACK_RECOMMENDED_DISHES } from '@/lib/constants/foodData'
 import { DEFAULT_TIMEOUT_API_FUNFACTS } from '@/lib/constants/config'
 
 const DEBUG_MODE = process.env.NEXT_PUBLIC_DEBUG_MODE === 'true'
@@ -205,7 +205,8 @@ export const FoodWheel = () => {
                 console.error('Error fetching recommendations:', error);
                 // Return fallback data on error
                 return {
-                    funFact: FALLBACK_FUN_FACTS[section.category.toLowerCase()]
+                    funFact: FALLBACK_FUN_FACTS[section.category.toLowerCase()],
+                    recommendedDishes: FALLBACK_RECOMMENDED_DISHES[section.category.toLowerCase()]
                 };
             }
         })();
@@ -239,7 +240,8 @@ export const FoodWheel = () => {
                 setIsLoadingWeatherData(false);
                 // Use fallback data
                 setWeatherData({
-                    funFact: FALLBACK_FUN_FACTS[section.category.toLowerCase()]
+                    funFact: FALLBACK_FUN_FACTS[section.category.toLowerCase()],
+                    recommendedDishes: FALLBACK_RECOMMENDED_DISHES[section.category.toLowerCase()]
                 });
             }
         }, 3000);
