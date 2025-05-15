@@ -21,3 +21,5 @@ export interface Location {
 
 // default timeout for API calls
 export const DEFAULT_TIMEOUT_API_FUNFACTS = 15000; // 15 seconds
+
+export const DEFAULT_TIMEOUT_API_RESTAURANTS = 15000; // 10 seconds

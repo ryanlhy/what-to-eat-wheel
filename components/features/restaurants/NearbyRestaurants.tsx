@@ -8,6 +8,7 @@ import { ImageModal } from './modals/ImageModal';
 import { RestaurantModal } from './modals/RestaurantModal';
 import { createDummyRestaurantsWithPhotos } from '@/lib/constants/dummyRestaurants';
 import { searchRestaurantsByCuisine } from '../wheel/restaurantSearch';
+import { DEFAULT_TIMEOUT_API_RESTAURANTS } from '@/lib/constants/config';
 
 // Define libraries array outside component to prevent re-renders
 const libraries: Libraries = ['places'];
@@ -300,7 +301,7 @@ export const NearbyRestaurants = ({
                     setDummyDataReason('timeout');
                     loadDummyRestaurants();
                 },
-                { timeout: 5000, maximumAge: 0 }
+                { timeout: DEFAULT_TIMEOUT_API_RESTAURANTS, maximumAge: 0 }
             );
         } else {
             setError('Geolocation is not supported by this browser.');
