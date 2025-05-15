@@ -8,6 +8,11 @@ export const API_CONFIG = {
     DEFAULT_RADIUS_KM: 5
 } as const;
 
+export const FALLBACK_WEATHER = {
+    temperature: '28.3°C',
+    condition: 'cloudy'
+} as const;
+
 // Type definitions
 export interface Location {
     lat: number;
