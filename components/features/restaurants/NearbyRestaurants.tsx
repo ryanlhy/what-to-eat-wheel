@@ -301,7 +301,10 @@ export const NearbyRestaurants = ({
                     setDummyDataReason('timeout');
                     loadDummyRestaurants();
                 },
-                { timeout: DEFAULT_TIMEOUT_API_RESTAURANTS, maximumAge: 0 }
+                {
+                    timeout: DEFAULT_TIMEOUT_API_RESTAURANTS,
+                    enableHighAccuracy: false // Network location is sufficient for restaurant search
+                }
             );
         } else {
             setError('Geolocation is not supported by this browser.');
