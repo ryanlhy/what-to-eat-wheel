@@ -242,6 +242,7 @@ export const NearbyRestaurants = ({
     const [page, setPage] = useState(1);
     const [hasSearched, setHasSearched] = useState(false);
     const [usingDummyData, setUsingDummyData] = useState(false);
+    const [dummyDataReason, setDummyDataReason] = useState<'timeout' | 'no-location' | 'api-error' | null>(null);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
 
     // Local cache for restaurant details to reduce API calls
@@ -295,17 +296,15 @@ export const NearbyRestaurants = ({
                 },
                 (error) => {
                     console.error('Geolocation error:', error.message);
-                    // When loading dummy data, show a less alarming error message
                     setError(null);
-                    // Load dummy data when geolocation fails
+                    setDummyDataReason('timeout');
                     loadDummyRestaurants();
                 },
-                // Add timeout options to ensure prompt response
                 { timeout: 5000, maximumAge: 0 }
             );
         } else {
             setError('Geolocation is not supported by this browser.');
-            // Load dummy data when geolocation is not supported
+            setDummyDataReason('no-location');
             loadDummyRestaurants();
         }
     }, [loadDummyRestaurants]);
@@ -570,7 +569,7 @@ export const NearbyRestaurants = ({
             } catch (err) {
                 console.error('Error in search:', err);
                 setError(err instanceof Error ? err.message : 'Error finding restaurants');
-                // Load dummy data on API error
+                setDummyDataReason('api-error');
                 loadDummyRestaurants();
             } finally {
                 setIsLoading(false);
@@ -681,7 +680,15 @@ export const NearbyRestaurants = ({
                                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                             </svg>
                             <span className="flex-1">
-                                You are viewing sample restaurant data.{' '}
+                                {dummyDataReason === 'timeout' ? (
+                                    <>Location request timed out. You are viewing sample restaurant data.</>
+                                ) : dummyDataReason === 'no-location' ? (
+                                    <>Location services are not available. You are viewing sample restaurant data.</>
+                                ) : dummyDataReason === 'api-error' ? (
+                                    <>Unable to fetch nearby restaurants. You are viewing sample restaurant data.</>
+                                ) : (
+                                    <>You are viewing sample restaurant data.</>
+                                )}{' '}
                                 <button
                                     onClick={() => {
                                         if (navigator.geolocation) {
