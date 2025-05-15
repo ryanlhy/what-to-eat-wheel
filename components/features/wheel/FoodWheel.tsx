@@ -466,7 +466,7 @@ export const FoodWheel = () => {
                                             transition={{ duration: 0.5, delay: 0.2 }}
                                             className="mb-6 p-4 bg-yellow-50 rounded-lg transform-gpu"
                                         >
-                                            <p className="text-lg italic text-gray-700">{weatherData.funFact}</p>
+                                            <p className="text-lg italic text-gray-700">Fun fact: {weatherData.funFact}</p>
                                         </motion.div>
                                     </div>
                                 )}

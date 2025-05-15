@@ -1,20 +1,20 @@
 import { FoodItem, WheelSection } from '@/types/food'
 
 export const FALLBACK_FUN_FACTS: Record<string, string> = {
-    japanese: "Did you know? Japanese cuisine emphasizes seasonal ingredients and beautiful presentation, reflecting the country's deep appreciation for nature and aesthetics.",
-    mexican: "Fun fact: Mexican cuisine was added to UNESCO's list of Intangible Cultural Heritage in 2010, recognizing its importance to world culture.",
-    spanish: "Interesting tidbit: The Spanish tradition of tapas began when bartenders would cover wine glasses with bread slices to keep dust out - 'tapa' means 'lid' in Spanish!",
-    american: "Did you know? The hamburger as we know it today was popularized at the 1904 St. Louis World's Fair, marking the beginning of America's love affair with this iconic food.",
-    korean: "Fun fact: Korean cuisine always includes kimchi, which has over 200 varieties and is recognized by UNESCO as an Intangible Cultural Heritage.",
-    vietnamese: "Interesting fact: Vietnamese cuisine is considered one of the healthiest in the world, focusing on fresh herbs, vegetables, and balanced flavors.",
-    french: "Did you know? The croissant was actually inspired by the Austrian kipferl, and was popularized in France by Marie Antoinette!",
-    mediterranean: "Fun fact: The Mediterranean diet is one of the most studied diets in the world and is consistently ranked as one of the healthiest eating patterns.",
-    thai: "Interesting tidbit: Traditional Thai cuisine aims to combine all four taste sensations - sour, sweet, salty, and bitter - in every meal.",
-    indian: "Did you know? Indian cuisine dates back over 5000 years, with each region developing its own unique cooking style and traditions.",
-    chinese: "Fun fact: Chinese cuisine has influenced many other Asian cuisines, with techniques like stir-frying being adopted worldwide.",
-    italian: "Interesting fact: Pizza Margherita was created in 1889 to honor Queen Margherita of Italy, using ingredients that represented the Italian flag.",
-    hawker: "Did you know? Singapore's hawker culture has been recognized by UNESCO as an Intangible Cultural Heritage, celebrating its unique food and community traditions.",
-    healthy: "Fun fact: The concept of 'superfoods' gained popularity in the early 2000s, highlighting nutrient-rich foods that promote health and wellbeing."
+    japanese: "Japanese cuisine emphasizes seasonal ingredients and beautiful presentation, reflecting the country's deep appreciation for nature and aesthetics.",
+    mexican: "Mexican cuisine was added to UNESCO's list of Intangible Cultural Heritage in 2010, recognizing its importance to world culture.",
+    spanish: "The Spanish tradition of tapas began when bartenders would cover wine glasses with bread slices to keep dust out - 'tapa' means 'lid' in Spanish!",
+    american: "The hamburger as we know it today was popularized at the 1904 St. Louis World's Fair, marking the beginning of America's love affair with this iconic food.",
+    korean: "Korean cuisine always includes kimchi, which has over 200 varieties and is recognized by UNESCO as an Intangible Cultural Heritage.",
+    vietnamese: "Vietnamese cuisine is considered one of the healthiest in the world, focusing on fresh herbs, vegetables, and balanced flavors.",
+    french: "The croissant was actually inspired by the Austrian kipferl, and was popularized in France by Marie Antoinette!",
+    mediterranean: "The Mediterranean diet is one of the most studied diets in the world and is consistently ranked as one of the healthiest eating patterns.",
+    thai: "Traditional Thai cuisine aims to combine all four taste sensations - sour, sweet, salty, and bitter - in every meal.",
+    indian: "Indian cuisine dates back over 5000 years, with each region developing its own unique cooking style and traditions.",
+    chinese: "Chinese cuisine has influenced many other Asian cuisines, with techniques like stir-frying being adopted worldwide.",
+    italian: "Pizza Margherita was created in 1889 to honor Queen Margherita of Italy, using ingredients that represented the Italian flag.",
+    hawker: "Singapore's hawker culture has been recognized by UNESCO as an Intangible Cultural Heritage, celebrating its unique food and community traditions.",
+    healthy: "The concept of 'superfoods' gained popularity in the early 2000s, highlighting nutrient-rich foods that promote health and wellbeing."
 } as const;
 
 export const FALLBACK_RECOMMENDED_DISHES: Record<string, Array<{dish: string; nutrition: string[]; suggestedRestaurants: string[]}>> = {
