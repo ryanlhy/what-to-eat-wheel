@@ -1,7 +1,7 @@
 export const DEFAULT_LOCATION = {
-    lat: 1.3063898620138694,
-    lng: 103.79264781612267
-} as const;
+    lat: 1.3345140561175468,
+    lng: 103.96036592310388
+} as const; // expo location
 
 export const API_CONFIG = {
     WEATHER_ENABLED: true,
