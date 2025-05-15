@@ -303,7 +303,7 @@ export const NearbyRestaurants = ({
                 },
                 {
                     timeout: DEFAULT_TIMEOUT_API_RESTAURANTS,
-                    // maximumAge: 1800000, // 30 minutes - reasonable for a meal-finding session
+                    maximumAge: 1800000, // 30 minutes - reasonable for a meal-finding session
                     // enableHighAccuracy: false // Network location is sufficient for restaurant search
                 }
             );
